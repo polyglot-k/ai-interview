@@ -1,0 +1,8 @@
+package com.example.aiinterview.llm.assistant;
+
+import dev.langchain4j.service.*;
+
+public interface BackendAssistant extends ChatMemoryAccess {
+    @SystemMessage(fromResource = "prompts/backend-interview-prompt.md")
+    TokenStream chat(@MemoryId int memoryId,@UserMessage String message);
+}
