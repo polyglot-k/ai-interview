@@ -1,9 +1,9 @@
 package com.example.aiinterview.common.config;
 
-import com.example.aiinterview.interview.infrastructure.converter.InterviewRoomStatusReadConverter;
-import com.example.aiinterview.interview.infrastructure.converter.InterviewRoomStatusWriteConverter;
-import com.example.aiinterview.interview.infrastructure.converter.InterviewSenderReadConverter;
-import com.example.aiinterview.interview.infrastructure.converter.InterviewSenderWriteConverter;
+import com.example.aiinterview.module.interview.infrastructure.converter.InterviewRoomStatusReadConverter;
+import com.example.aiinterview.module.interview.infrastructure.converter.InterviewRoomStatusWriteConverter;
+import com.example.aiinterview.module.interview.infrastructure.converter.InterviewSenderReadConverter;
+import com.example.aiinterview.module.interview.infrastructure.converter.InterviewSenderWriteConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
