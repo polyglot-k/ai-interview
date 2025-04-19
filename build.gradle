@@ -24,23 +24,39 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    compileOnly 'org.projectlombok:lombok'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    runtimeOnly 'com.h2database:h2'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // WebFlux
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // Reactive DB (R2DBC)
+    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+    runtimeOnly 'io.r2dbc:r2dbc-h2'
+
+    // LangChain4j (AI 관련)
     implementation 'dev.langchain4j:langchain4j-open-ai:1.0.0-beta3'
     implementation 'dev.langchain4j:langchain4j:1.0.0-beta3'
     implementation 'dev.langchain4j:langchain4j-google-ai-gemini:1.0.0-beta3'
 
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
-    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
-    implementation 'io.r2dbc:r2dbc-h2'
+    // MapDB (임시 데이터 저장용)
     implementation 'org.mapdb:mapdb:3.0.4'
+
+    // JWT, 암호화
+    implementation 'io.jsonwebtoken:jjwt:0.9.1'
+    implementation 'org.mindrot:jbcrypt:0.4'
+
+    //jwt
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:2.3.3'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+
+    // 테스트
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // 개발 중 자동 재시작 (선택)
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
 }
 
 tasks.named('test') {
