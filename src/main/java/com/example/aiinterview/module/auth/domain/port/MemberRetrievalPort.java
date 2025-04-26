@@ -1,8 +1,8 @@
 package com.example.aiinterview.module.auth.domain.port;
 
-import com.example.aiinterview.module.member.domain.entity.Member;
+import com.example.aiinterview.module.interviewee.domain.entity.Interviewee;
 import reactor.core.publisher.Mono;
 
 public interface MemberRetrievalPort {
-    Mono<Member> findByEmail(String email);
+    Mono<Interviewee> findByEmail(String email);
 }
