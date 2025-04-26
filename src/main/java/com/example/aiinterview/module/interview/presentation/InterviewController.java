@@ -1,11 +1,14 @@
 package com.example.aiinterview.module.interview.presentation;
 
 import com.example.aiinterview.module.interview.application.InterviewRoomApplicationService;
-import com.example.aiinterview.module.interview.domain.entity.InterviewRoom;
+import com.example.aiinterview.module.interview.domain.entity.InterviewMessage;
+import com.example.aiinterview.module.interview.domain.entity.InterviewSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/interviews")
@@ -13,27 +16,39 @@ import reactor.core.publisher.Mono;
 public class InterviewController {
     private final InterviewRoomApplicationService applicationService;
 
+    @GetMapping()
+    public Mono<List<InterviewSession>> retrieveInterviewRoom(@RequestAttribute("userId") Long memberId){
+        return applicationService.retrieveInterviewRoom(memberId);
+    }
     @PostMapping()
-    public Mono<InterviewRoom> createRoom() {
-        return applicationService.createRoom();
+    public Mono<InterviewSession> createRoom(@RequestParam("userId") Long memberId) {
+        return applicationService.createRoom(memberId);
+    }
+
+    @GetMapping("/{sessionId}/message")
+    public Mono<List<InterviewMessage>> retrieveMessage(@PathVariable Long sessionId,
+                                                        @RequestAttribute("userId") Long memberId) {
+        // InterviewRoomApplicationService의 sendMessage 호출
+        return applicationService.retrieveMessage(sessionId, memberId);
     }
 
     /**
      * 해당 유저가 속한 방 아니면 접근 못하게
-     * @param roomId
+     * @param sessionId
      * @param message
      * @return
      */
-    @PostMapping("/{roomId}/message")
-    public Flux<String> sendMessage(@PathVariable Long roomId,
+    @PostMapping("/{sessionId}/message")
+    public Flux<String> sendMessage(@PathVariable Long sessionId,
                                     @RequestAttribute("userId") Long memberId,
                                     @RequestBody String message) {
         // InterviewRoomApplicationService의 sendMessage 호출
-        return applicationService.sendMessage(roomId, memberId, message);
+        return applicationService.sendMessage(sessionId, memberId, message);
     }
 
-    @GetMapping("/{roomId}/history")
-    public Flux<String> retrieveMessageHistory(@PathVariable Long roomId){
-        return Flux.never();
+    @GetMapping("/{sessionId}/history")
+    public Mono<String> retrieveMessageHistory(@PathVariable Long sessionId,
+                                               @RequestAttribute("userId") Long memberId){
+        return applicationService.retrieveMessageHistory(sessionId);
     }
 }
