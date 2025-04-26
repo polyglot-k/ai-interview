@@ -1,4 +1,4 @@
-package com.example.aiinterview.module.analysis.config;
+package com.example.aiinterview.module.llm.analysis.dto;
 
 import java.util.List;
 

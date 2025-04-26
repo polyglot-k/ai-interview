@@ -1,8 +1,8 @@
-package com.example.aiinterview.module.interviewer;
+package com.example.aiinterview.module.llm.interviewer;
 
-import com.example.aiinterview.module.interviewer.assistant.AssistantRouter;
-import com.example.aiinterview.module.interviewer.assistant.ReactiveAssistant;
-import com.example.aiinterview.module.interviewer.prompt.LLMPromptType;
+import com.example.aiinterview.module.llm.interviewer.assistant.AssistantRouter;
+import com.example.aiinterview.module.llm.interviewer.assistant.ReactiveAssistant;
+import com.example.aiinterview.module.llm.interviewer.prompt.LLMPromptType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;

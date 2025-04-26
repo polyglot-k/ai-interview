@@ -1,10 +1,9 @@
-package com.example.aiinterview.module.analysis;
+package com.example.aiinterview.module.llm.analysis;
 
-import com.example.aiinterview.module.analysis.config.InterviewSessionResult;
+import com.example.aiinterview.module.llm.analysis.dto.InterviewSessionResult;
 import com.example.aiinterview.module.interview.infrastructure.repository.InterviewMessageRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.request.ChatRequest;

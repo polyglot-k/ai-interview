@@ -1,4 +1,4 @@
-package com.example.aiinterview.module.interviewer.assistant;
+package com.example.aiinterview.module.llm.interviewer.assistant;
 
 import dev.langchain4j.service.*;
 

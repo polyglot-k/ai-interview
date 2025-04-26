@@ -1,6 +1,6 @@
-package com.example.aiinterview.module.interviewer.assistant;
+package com.example.aiinterview.module.llm.interviewer.assistant;
 
-import com.example.aiinterview.module.interviewer.prompt.LLMPromptType;
+import com.example.aiinterview.module.llm.interviewer.prompt.LLMPromptType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

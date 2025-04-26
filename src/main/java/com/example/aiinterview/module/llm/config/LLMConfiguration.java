@@ -1,13 +1,15 @@
-package com.example.aiinterview.module.analysis.config;
+package com.example.aiinterview.module.llm.config;
 
 import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.chat.request.ResponseFormat;
-import dev.langchain4j.model.chat.request.ResponseFormatType;
 import dev.langchain4j.model.chat.request.json.JsonArraySchema;
 import dev.langchain4j.model.chat.request.json.JsonObjectSchema;
 import dev.langchain4j.model.chat.request.json.JsonSchema;
 import dev.langchain4j.model.chat.request.json.JsonSchemaElement;
 import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel;
+import dev.langchain4j.model.googleai.GoogleAiGeminiStreamingChatModel;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,9 +18,29 @@ import java.util.Map;
 import static dev.langchain4j.model.chat.request.ResponseFormatType.JSON;
 
 @Configuration
-public class AnalysisConfiguration {
+public class LLMConfiguration {
+    @Value("${llm.google.api-key}")
+    private String API_KEY;
+    @Value("${llm.google.model-name}")
+    private String MODEL_NAME;
+
     @Bean
-    ResponseFormat responseFormat(){
+    public StreamingChatLanguageModel geminiStreamModel() {
+        return GoogleAiGeminiStreamingChatModel.builder()
+                .apiKey(API_KEY)
+                .modelName(MODEL_NAME)
+                .build();
+    }
+    @Bean
+    ChatLanguageModel geminiModel(){
+        return GoogleAiGeminiChatModel.builder()
+                .apiKey(API_KEY)
+                .modelName(MODEL_NAME) //PRO로 변경
+                .logRequestsAndResponses(true)
+                .build();
+    }
+    @Bean
+    ResponseFormat analysisResponseFormat(){
         Map<String, JsonSchemaElement> properties = Map.of(
                 "evaluations", JsonArraySchema.builder()
                         .items(JsonObjectSchema.builder()
@@ -43,13 +65,4 @@ public class AnalysisConfiguration {
                         .build())
                 .build();
     }
-    @Bean
-    ChatLanguageModel geminiAnalysisModel(){
-        return GoogleAiGeminiChatModel.builder()
-                .apiKey("AIzaSyAIzvlMHHvuNX4thlOs2CyK86SpKFytNes")
-                .modelName("gemini-1.5-pro")
-                .logRequestsAndResponses(true)
-                .build();
-    }
-
 }

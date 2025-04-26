@@ -1,4 +1,4 @@
-package com.example.aiinterview.module.interviewer.memory;
+package com.example.aiinterview.module.llm.interviewer.memory;
 
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;

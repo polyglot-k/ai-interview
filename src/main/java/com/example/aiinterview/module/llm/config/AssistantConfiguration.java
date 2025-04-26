@@ -1,10 +1,10 @@
-package com.example.aiinterview.module.interviewer.config;
+package com.example.aiinterview.module.llm.config;
 
-import com.example.aiinterview.module.interviewer.assistant.BackendAssistant;
-import com.example.aiinterview.module.interviewer.assistant.FrontendAssistant;
-import com.example.aiinterview.module.interviewer.assistant.ReactiveAssistant;
-import com.example.aiinterview.module.interviewer.memory.PersistentChatMemoryStore;
-import com.example.aiinterview.module.interviewer.prompt.LLMPromptType;
+import com.example.aiinterview.module.llm.interviewer.assistant.BackendAssistant;
+import com.example.aiinterview.module.llm.interviewer.assistant.FrontendAssistant;
+import com.example.aiinterview.module.llm.interviewer.assistant.ReactiveAssistant;
+import com.example.aiinterview.module.llm.interviewer.memory.PersistentChatMemoryStore;
+import com.example.aiinterview.module.llm.interviewer.prompt.LLMPromptType;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;

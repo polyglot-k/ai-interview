@@ -1,4 +1,4 @@
-package com.example.aiinterview.module.interviewer.prompt;
+package com.example.aiinterview.module.llm.interviewer.prompt;
 
 import org.springframework.stereotype.Component;
 

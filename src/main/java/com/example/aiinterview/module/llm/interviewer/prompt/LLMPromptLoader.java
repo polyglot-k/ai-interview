@@ -1,4 +1,4 @@
-package com.example.aiinterview.module.interviewer.prompt;
+package com.example.aiinterview.module.llm.interviewer.prompt;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;

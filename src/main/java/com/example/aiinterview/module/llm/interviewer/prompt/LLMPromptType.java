@@ -1,4 +1,4 @@
-package com.example.aiinterview.module.interviewer.prompt;
+package com.example.aiinterview.module.llm.interviewer.prompt;
 
 public enum LLMPromptType {
     FRONTEND,

@@ -1,4 +1,4 @@
-package com.example.aiinterview.module.interviewer.prompt;
+package com.example.aiinterview.module.llm.interviewer.prompt;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
