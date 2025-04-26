@@ -1,9 +1,6 @@
 package com.example.aiinterview.module.interview.domain.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -13,8 +10,8 @@ import java.time.LocalDateTime;
 @Table("interview_messages")  // R2DBC 테이블 이름 지정
 @Getter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class InterviewMessage {
 
     @Id  // Primary Key 지정
