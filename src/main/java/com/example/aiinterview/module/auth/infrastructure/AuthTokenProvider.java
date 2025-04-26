@@ -1,8 +1,8 @@
 package com.example.aiinterview.module.auth.infrastructure;
 
-import com.example.aiinterview.common.utils.JWTUtils;
+import com.example.aiinterview.global.common.utils.JWTUtils;
 import com.example.aiinterview.module.auth.domain.AccessToken;
-import com.example.aiinterview.common.security.AuthorizationPayload;
+import com.example.aiinterview.global.security.AuthorizationPayload;
 import com.example.aiinterview.module.auth.domain.RefreshToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
