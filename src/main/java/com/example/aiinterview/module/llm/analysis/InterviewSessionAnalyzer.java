@@ -43,8 +43,8 @@ public class InterviewSessionAnalyzer {
     }
 
     private Mono<String> loadInterviewSessionMessage(Long interviewSessionId) {
-        return repository.findByRoomId(interviewSessionId)
-                .map(msg -> msg.getSender() + ": " + msg.getMessage())
+        return repository.findBySessionId(interviewSessionId)
+                .map(msg ->"[ id : "+ msg.getId()+ "]" + msg.getSender() + ": " + msg.getMessage())
                 .reduce((a, b) -> a + "\n" + b);
     }
 
