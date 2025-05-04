@@ -1,7 +1,7 @@
 package com.example.aiinterview.module.llm.analysis.dto;
 
 public record PartialEvaluation(
-        String problemContent,
+        Long interviewMessageId,
         double score,
         String feedback
 ){}
