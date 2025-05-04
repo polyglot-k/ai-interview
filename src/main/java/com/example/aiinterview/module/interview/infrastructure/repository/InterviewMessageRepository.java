@@ -7,5 +7,5 @@ import reactor.core.publisher.Mono;
 
 public interface InterviewMessageRepository extends R2dbcRepository<InterviewMessage, Long> {
 
-    Flux<InterviewMessage> findByRoomId(Long roomId);
+    Flux<InterviewMessage> findBySessionId(Long sessionId);
 }
