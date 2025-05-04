@@ -39,16 +39,16 @@ public class InterviewRoomApplicationService {
     /**
      * 메시지 가져오기
      */
-    public Mono<List<InterviewMessage>> retrieveMessage(Long roomId, Long memberId){
-        return messageRepository.findByRoomId(roomId)
+    public Mono<List<InterviewMessage>> retrieveMessage(Long sessionId, Long memberId){
+        return messageRepository.findBySessionId(sessionId)
                 .collectList()
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("면접방이 존재하지 않습니다.")));
     }
     /**
      * 메시지 추가
      */
-    public Flux<String> sendMessage(Long roomId, Long memberId, String message) {
-        return roomRepository.findById(roomId)
+    public Flux<String> sendMessage(Long sessionId, Long memberId, String message) {
+        return roomRepository.findById(sessionId)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("면접방이 존재하지 않습니다.")))
                 .flatMap(room -> {
                     if (!room.getIntervieweeId().equals(memberId)) {
@@ -59,15 +59,15 @@ public class InterviewRoomApplicationService {
                     }
                     return Mono.just(room);
                 })
-                .flatMapMany(room -> saveHumanMessage(roomId, message)
-                        .flatMapMany(savedHumanMessage -> startLLMStreaming(roomId,message)));
+                .flatMapMany(room -> saveHumanMessage(sessionId, message)
+                        .flatMapMany(savedHumanMessage -> startLLMStreaming(sessionId,message)));
     }
 
     /**
      * 면접 종료
      */
-    public Mono<Void> completeInterview(Long roomId, String feedback) {
-        return roomRepository.findById(roomId)
+    public Mono<Void> completeInterview(Long sessionId, String feedback) {
+        return roomRepository.findById(sessionId)
                 .flatMap(room -> {
 //                    roomDomainService.completeInterview(room);
                     return roomRepository.save(room).then();
@@ -78,42 +78,42 @@ public class InterviewRoomApplicationService {
     // ==========================
     // 2. Private Helper Methods
     // ==========================
-    private Flux<String> startLLMStreaming(Long roomId, String message) {
-        return interviewStreamer.stream(roomId.intValue(), LLMPromptType.BACKEND, message)
-                .doOnNext(partialResponse -> appendLLMResponsePart(roomId, partialResponse))
+    private Flux<String> startLLMStreaming(Long sessionId, String message) {
+        return interviewStreamer.stream(sessionId.intValue(), LLMPromptType.BACKEND, message)
+                .doOnNext(partialResponse -> appendLLMResponsePart(sessionId, partialResponse))
                 .delayElements(java.time.Duration.ofSeconds(10))
-                .doOnComplete(()->saveLLMResponse(roomId))
+                .doOnComplete(()->saveLLMResponse(sessionId))
                 .subscribeOn(Schedulers.boundedElastic());
     }
-    private Mono<InterviewMessage> saveHumanMessage(Long roomId, String message) {
-        return messageRepository.save(InterviewMessage.createByMember(roomId, message))
+    private Mono<InterviewMessage> saveHumanMessage(Long sessionId, String message) {
+        return messageRepository.save(InterviewMessage.createByMember(sessionId, message))
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
-    private void appendLLMResponsePart(Long roomId, String partialBuffer) {
-        String redisKey = String.format("interview:%d:partial_response", roomId);
+    private void appendLLMResponsePart(Long sessionId, String partialBuffer) {
+        String redisKey = String.format("interview:%d:partial_response", sessionId);
         redisService.appendToString(redisKey, partialBuffer)
                 .subscribeOn(Schedulers.boundedElastic())
-                .doOnSuccess(length -> log.debug("Room {}: Appended '{}', current length: {}", roomId, partialBuffer, length))
-                .doOnError(error -> log.error("Room {}: Error appending '{}': {}", roomId, partialBuffer, error.getMessage()))
+                .doOnSuccess(length -> log.debug("Room {}: Appended '{}', current length: {}", sessionId, partialBuffer, length))
+                .doOnError(error -> log.error("Room {}: Error appending '{}': {}", sessionId, partialBuffer, error.getMessage()))
                 .subscribe();
     }
 
-    private void saveLLMResponse(Long roomId) {
+    private void saveLLMResponse(Long sessionId) {
 
-        String redisKey = String.format("interview:%d:partial_response", roomId);
+        String redisKey = String.format("interview:%d:partial_response", sessionId);
         redisService.get(redisKey)
                 .flatMap(fullResponse -> {
                     log.info("💬 스트림 완료 - 전체 응답 저장 시도: {}", fullResponse);
-                    return messageRepository.save(InterviewMessage.createByLLM(roomId, fullResponse))
+                    return messageRepository.save(InterviewMessage.createByLLM(sessionId, fullResponse))
                             .then(redisService.delete(redisKey));
                 })
                 .subscribeOn(Schedulers.boundedElastic())
                 .subscribe();
     }
 
-    public Mono<String> retrieveMessageHistory(Long roomId) {
-        String redisKey = String.format("interview:%d:partial_response", roomId);
+    public Mono<String> retrieveMessageBuffer(Long sessionId) {
+        String redisKey = String.format("interview:%d:partial_response", sessionId);
         return redisService.get(redisKey);
     }
 
