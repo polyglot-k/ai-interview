@@ -15,23 +15,23 @@ import java.time.LocalDateTime;
 public class InterviewSession {
 
     @Id  // Primary Key 지정
+    @Column("id")
     private Long id;
 
     @Column("status")
     private InterviewSessionStatus status;  // InterviewSessionStatus Enum의 String 값으로 처리
+    @Column("started_at")
+    private LocalDateTime startedAt;
+    @Column("ended_at")
+    private LocalDateTime endedAt = null;
 
-    @Column("feedback")
-    private String feedback;
-
-    @Column("interviewee_id")
+    @Column("u_id")
     private Long intervieweeId;
 
-    @Column("created_at")
-    private LocalDateTime createdAt;
     public static InterviewSession create(Long memberId){
         return InterviewSession.builder()
                 .status(InterviewSessionStatus.ACTIVE)  // 기본값: ACTIVE
-                .createdAt(LocalDateTime.now())
+                .startedAt(LocalDateTime.now())
                 .intervieweeId(memberId)
                 .build();
     }
@@ -42,13 +42,5 @@ public class InterviewSession {
 
     public void appendMessage(Long messageId) {
 //        this.messageIds.add(messageId);
-    }
-
-    @Override
-    public String toString() {
-        return "InterviewSession{" +
-                "status='" + status + '\'' +
-                ", feedback='" + feedback + '\'' +
-                '}';
     }
 }
