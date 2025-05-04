@@ -13,18 +13,23 @@ import org.springframework.data.relational.core.mapping.Column;
 
 import java.time.LocalDateTime;
 
-@Table("members")
+@Table("users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Interviewee {
 
     @Id
+    @Column("id")
     private Long id;
 
+    @Column("email")
     private String email;
 
+    @Column("name")
     private String name;
+
+    @Column("password")
     private String password;
     /**
      * 직렬
