@@ -25,10 +25,9 @@ public class InterviewController {
         return applicationService.createRoom(memberId);
     }
 
-    @GetMapping("/{sessionId}/message")
+    @GetMapping("/{sessionId}/messages")
     public Mono<List<InterviewMessage>> retrieveMessage(@PathVariable Long sessionId,
                                                         @RequestAttribute("userId") Long memberId) {
-        // InterviewRoomApplicationService의 sendMessage 호출
         return applicationService.retrieveMessage(sessionId, memberId);
     }
 
@@ -38,17 +37,20 @@ public class InterviewController {
      * @param message
      * @return
      */
-    @PostMapping("/{sessionId}/message")
+    @PostMapping("/{sessionId}/messages")
     public Flux<String> sendMessage(@PathVariable Long sessionId,
                                     @RequestAttribute("userId") Long memberId,
                                     @RequestBody String message) {
         // InterviewRoomApplicationService의 sendMessage 호출
         return applicationService.sendMessage(sessionId, memberId, message);
     }
-
-    @GetMapping("/{sessionId}/history")
+    @PostMapping("/{sessionId}/analysis")
+    public Mono<Void> analyzeMessageBySessionId(@PathVariable Long sessionId){
+        return Mono.empty();
+    }
+    @GetMapping("/{sessionId}/buffer")
     public Mono<String> retrieveMessageHistory(@PathVariable Long sessionId,
                                                @RequestAttribute("userId") Long memberId){
-        return applicationService.retrieveMessageHistory(sessionId);
+        return applicationService.retrieveMessageBuffer(sessionId);
     }
 }
