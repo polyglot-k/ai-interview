@@ -70,6 +70,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
     implementation 'io.lettuce:lettuce-core'
 
+    implementation 'io.asyncer:r2dbc-mysql:1.4.0'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
     testImplementation 'io.projectreactor:reactor-test'
 }
 
