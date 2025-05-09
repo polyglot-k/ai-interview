@@ -51,11 +51,10 @@ jobs:
           DOCKER_REGISTRY="${{ secrets.ARTIFACT_REGISTRY_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/${{ secrets.ARTIFACT_REGISTRY_NAME }}"
           docker build -t "$DOCKER_REGISTRY/ai-interview:${{ github.sha }}" .
 
-      - name: Configure Google Cloud CLI
-        uses: google-github-actions/setup-gcloud@v2 # 최신 방식의 Google Cloud CLI 설정
+      - name: Set up Google Cloud authentication
+        uses: google-github-actions/auth@v2
         with:
-          project_id: ${{ secrets.GCP_PROJECT }}
-          credentials: ${{ secrets.GCP_SA_KEY }} # 서비스 계정 키 직접 사용
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Log in to Google Container Registry
         run: |
