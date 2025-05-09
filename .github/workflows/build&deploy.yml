@@ -1,54 +1,77 @@
-name: Deploy Spring App with Docker to GCP Compute Engine
+name: Build, Package, and Deploy Spring Boot App with Docker
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  deploy:
+  build_and_deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Google Cloud 인증을 위한 권한
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4 # 최신 버전 사용
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4 # 최신 버전 사용
         with:
           java-version: '21'
-          distribution: 'adoptopenjdk'
+          distribution: 'temurin'
+          cache: gradle # Gradle 캐싱 활성화로 빌드 속도 향상
 
-      - name: Set up Gradle
-        uses: gradle/wrapper-validation-action@v1
-
-      - name: Build Spring Application with Gradle
-        run: ./gradlew build -x test
-
-      - name: Build Docker image
+      - name: Decode and write application.yml
         run: |
-          docker build -t my-spring-app .
+          mkdir -p src/main/resources
+          echo "${{ secrets.APPLICATION_YML }}" | base64 --decode > src/main/resources/application.yml
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v0
+      - name: Decode and write application-prod.yml
+        run: |
+          mkdir -p src/main/resources
+          echo "${{ secrets.APPLICATION_PROD_YML }}" | base64 --decode > src/main/resources/application-prod.yml
+
+      - name: Decode and write jwt.yml
+        run: |
+          mkdir -p src/main/resources
+          echo "${{ secrets.APPLICATION_JWT }}" | base64 --decode > src/main/resources/jwt.yml
+
+      - name: Grant execute permission to gradlew
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew clean build -x test # 테스트 건너뛰고 빌드 (필요에 따라 제거)
+
+      - name: Build Docker Image
+        run: |
+          echo "Building Docker image..."
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT }}/ai-interview:${{ github.sha }} .
+
+      - name: Configure Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v2 # 최신 방식의 Google Cloud CLI 설정
         with:
-          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT }}
+          credentials: ${{ secrets.GCP_SA_KEY }} # 서비스 계정 키 직접 사용
 
-      - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          version: '420.0.0'
-
-      - name: Push Docker image to Google Container Registry
+      - name: Log in to Google Container Registry
         run: |
-          gcloud auth configure-docker
-          docker tag my-spring-app gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-spring-app:latest
-          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-spring-app:latest
+          echo "Authenticating with Google Cloud..."
+          gcloud auth configure-docker --quiet
 
-      - name: Deploy to GCP Compute Engine
+      - name: Push Docker Image to Google Container Registry
         run: |
-          gcloud compute ssh --project ${{ secrets.GCP_PROJECT_ID }} --zone ${{ secrets.GCP_COMPUTE_ZONE }} ${{ secrets.GCP_INSTANCE_NAME }} --command "
-            sudo docker pull gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-spring-app:latest &&
-            sudo docker stop my-spring-app || true &&
-            sudo docker rm my-spring-app || true &&
-            sudo docker run -d --name my-spring-app -p 8080:8080 gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-spring-app:latest"
+          echo "Pushing Docker image to Google Container Registry..."
+          docker push gcr.io/${{ secrets.GCP_PROJECT }}/ai-interview:${{ github.sha }}
+
+      - name: SSH into Compute Engine and deploy Docker container
+        run: |
+          echo "SSH into Compute Engine and deploy Docker container..."
+          gcloud compute ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_INSTANCE_IP }} --project ${{ secrets.GCP_PROJECT }} --zone ${{ secrets.GCE_ZONE }} --command "
+            docker pull gcr.io/${{ secrets.GCP_PROJECT }}/ai-interview:${{ github.sha }} &&
+            docker stop ai-interview || true &&
+            docker rm ai-interview || true &&
+            docker run -d -p 8080:8080 --name ai-interview gcr.io/${{ secrets.GCP_PROJECT }}/ai-interview:${{ github.sha }}
+          "
