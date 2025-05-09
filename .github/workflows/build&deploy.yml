@@ -1,71 +1,54 @@
-name: Build, Package, and Deploy Spring Boot App with Docker
+name: Deploy Spring App with Docker to GCP Compute Engine
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
-  build_and_deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           java-version: '21'
-          distribution: 'temurin'
+          distribution: 'adoptopenjdk'
 
-      - name: Decode and write application.yml
+      - name: Set up Gradle
+        uses: gradle/wrapper-validation-action@v1
+
+      - name: Build Spring Application with Gradle
+        run: ./gradlew build -x test
+
+      - name: Build Docker image
         run: |
-          mkdir -p src/main/resources
-          echo "${{ secrets.APPLICATION_YML }}" | base64 --decode > src/main/resources/application.yml
+          docker build -t my-spring-app .
 
-      - name: Decode and write application-prod.yml
-        run: |
-          mkdir -p src/main/resources
-          echo "${{ secrets.APPLICATION_PROD_YML }}" | base64 --decode > src/main/resources/application-prod.yml
-
-      - name: Decode and write jwt.yml
-        run: |
-          mkdir -p src/main/resources
-          echo "${{ secrets.APPLICATION_JWT }}" | base64 --decode > src/main/resources/jwt.yml
-
-      - name: Grant execute permission to gradlew
-        run: chmod +x ./gradlew
-
-      - name: Build with Gradle
-        run: ./gradlew clean build
-
-      - name: Build Docker Image
-        run: |
-          echo "Building Docker image..."
-          docker build -t gcr.io/molten-muse-454108-h2/ai-interview:$GITHUB_SHA .
-
-      - name: Set up Google Cloud authentication
-        uses: google-github-actions/auth@v2
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v0
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
 
-      - name: Log in to Google Cloud Docker registry
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          version: '420.0.0'
+
+      - name: Push Docker image to Google Container Registry
         run: |
-          echo "Authenticating with Google Cloud..."
-          gcloud auth activate-service-account --key-file="${{ secrets.GCP_SA_KEY }}"
           gcloud auth configure-docker
+          docker tag my-spring-app gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-spring-app:latest
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-spring-app:latest
 
-      - name: Push Docker Image to Google Container Registry
+      - name: Deploy to GCP Compute Engine
         run: |
-          echo "Pushing Docker image to Google Container Registry..."
-          docker push gcr.io/molten-muse-454108-h2/ai-interview:$GITHUB_SHA
-
-      - name: SSH into Compute Engine and deploy Docker container
-        run: |
-          echo "SSH into Compute Engine and deploy Docker container..."
-          gcloud compute ssh ${{ secrets.GCE_USER }}@$YOUR_INSTANCE_IP --project ${{ secrets.GCP_PROJECT }} --zone ${{ secrets.GCE_ZONE }} --command "
-            docker pull gcr.io/molten-muse-454108-h2/ai-interview:$GITHUB_SHA &&
-            docker run -d -p 8080:8080 --name ai-interview gcr.io/molten-muse-454108-h2/ai-interview:$GITHUB_SHA
-          "
+          gcloud compute ssh --project ${{ secrets.GCP_PROJECT_ID }} --zone ${{ secrets.GCP_COMPUTE_ZONE }} ${{ secrets.GCP_INSTANCE_NAME }} --command "
+            sudo docker pull gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-spring-app:latest &&
+            sudo docker stop my-spring-app || true &&
+            sudo docker rm my-spring-app || true &&
+            sudo docker run -d --name my-spring-app -p 8080:8080 gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-spring-app:latest"
