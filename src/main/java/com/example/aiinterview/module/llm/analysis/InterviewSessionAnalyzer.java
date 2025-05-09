@@ -1,7 +1,7 @@
 package com.example.aiinterview.module.llm.analysis;
 
-import com.example.aiinterview.module.llm.analysis.dto.InterviewSessionResult;
 import com.example.aiinterview.module.interview.infrastructure.repository.InterviewMessageRepository;
+import com.example.aiinterview.module.llm.analysis.dto.InterviewSessionResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.data.message.UserMessage;

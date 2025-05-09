@@ -6,6 +6,7 @@ import com.example.aiinterview.module.interview.domain.entity.InterviewSession;
 import com.example.aiinterview.module.interview.domain.entity.InterviewSessionStatus;
 import com.example.aiinterview.module.interview.infrastructure.repository.InterviewMessageRepository;
 import com.example.aiinterview.module.interview.infrastructure.repository.InterviewRoomRepository;
+import com.example.aiinterview.module.llm.analysis.InterviewSessionAnalyzer;
 import com.example.aiinterview.module.llm.interviewer.InterviewStreamer;
 import com.example.aiinterview.module.llm.interviewer.prompt.LLMPromptType;
 import lombok.RequiredArgsConstructor;
@@ -19,15 +20,15 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class InterviewRoomApplicationService {
+public class InterviewSessionApplicationService {
     private final InterviewStreamer interviewStreamer;
+    private final InterviewSessionAnalyzer analyzer;
     private final InterviewRoomRepository roomRepository;
     private final InterviewMessageRepository messageRepository;
     private final RedisService redisService;
     // ==========================
     // 1. Public Methods
     // ==========================
-
     /**
      * 면접방 생성
      */
@@ -75,6 +76,21 @@ public class InterviewRoomApplicationService {
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("면접방이 존재하지 않습니다.")));
     }
 
+    public Mono<String> retrieveMessageBuffer(Long sessionId) {
+        String redisKey = String.format("interview:%d:partial_response", sessionId);
+        return redisService.get(redisKey);
+    }
+
+    public Mono<List<InterviewSession>> retrieveInterviewRoom(Long memberId) {
+        return roomRepository.findByIntervieweeId(memberId)
+                .collectList()
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("면접방이 존재하지 않습니다.")));
+    }
+    public Mono<Void> analyze(Long sessionId){
+        return analyzer.analyze(sessionId)
+                .then();
+    }
+
     // ==========================
     // 2. Private Helper Methods
     // ==========================
@@ -110,16 +126,5 @@ public class InterviewRoomApplicationService {
                 })
                 .subscribeOn(Schedulers.boundedElastic())
                 .subscribe();
-    }
-
-    public Mono<String> retrieveMessageBuffer(Long sessionId) {
-        String redisKey = String.format("interview:%d:partial_response", sessionId);
-        return redisService.get(redisKey);
-    }
-
-    public Mono<List<InterviewSession>> retrieveInterviewRoom(Long memberId) {
-        return roomRepository.findByIntervieweeId(memberId)
-                .collectList()
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("면접방이 존재하지 않습니다.")));
     }
 }

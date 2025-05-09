@@ -1,6 +1,6 @@
 package com.example.aiinterview.module.interview.presentation;
 
-import com.example.aiinterview.module.interview.application.InterviewRoomApplicationService;
+import com.example.aiinterview.module.interview.application.InterviewSessionApplicationService;
 import com.example.aiinterview.module.interview.domain.entity.InterviewMessage;
 import com.example.aiinterview.module.interview.domain.entity.InterviewSession;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import java.util.List;
 @RequestMapping("/api/interviews")
 @RequiredArgsConstructor
 public class InterviewController {
-    private final InterviewRoomApplicationService applicationService;
+    private final InterviewSessionApplicationService applicationService;
 
     @GetMapping()
     public Mono<List<InterviewSession>> retrieveInterviewRoom(@RequestAttribute("userId") Long memberId){
@@ -41,13 +41,10 @@ public class InterviewController {
     public Flux<String> sendMessage(@PathVariable Long sessionId,
                                     @RequestAttribute("userId") Long memberId,
                                     @RequestBody String message) {
-        // InterviewRoomApplicationService의 sendMessage 호출
         return applicationService.sendMessage(sessionId, memberId, message);
     }
-    @PostMapping("/{sessionId}/analysis")
-    public Mono<Void> analyzeMessageBySessionId(@PathVariable Long sessionId){
-        return Mono.empty();
-    }
+
+
     @GetMapping("/{sessionId}/buffer")
     public Mono<String> retrieveMessageHistory(@PathVariable Long sessionId,
                                                @RequestAttribute("userId") Long memberId){
