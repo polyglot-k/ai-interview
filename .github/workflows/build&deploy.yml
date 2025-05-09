@@ -48,7 +48,8 @@ jobs:
       - name: Build Docker Image
         run: |
           echo "Building Docker image..."
-          docker build -t gcr.io/${{ secrets.GCP_PROJECT }}/ai-interview:${{ github.sha }} .
+          DOCKER_REGISTRY="${{ secrets.ARTIFACT_REGISTRY_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/${{ secrets.ARTIFACT_REGISTRY_NAME }}"
+          docker build -t "$DOCKER_REGISTRY/ai-interview:${{ github.sha }}" .
 
       - name: Configure Google Cloud CLI
         uses: google-github-actions/setup-gcloud@v2 # 최신 방식의 Google Cloud CLI 설정
@@ -61,17 +62,23 @@ jobs:
           echo "Authenticating with Google Cloud..."
           gcloud auth configure-docker --quiet
 
-      - name: Push Docker Image to Google Container Registry
+      - name: Check gcloud Auth
+        run: gcloud auth list
+
+      - name: Push Docker Image to Artifact Registry
         run: |
-          echo "Pushing Docker image to Google Container Registry..."
-          docker push gcr.io/${{ secrets.GCP_PROJECT }}/ai-interview:${{ github.sha }}
+          
+          echo "Pushing Docker image to Artifact Registry..."
+          DOCKER_REGISTRY="${{ secrets.ARTIFACT_REGISTRY_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/${{ secrets.ARTIFACT_REGISTRY_NAME }}"
+          docker push "$DOCKER_REGISTRY/ai-interview:${{ github.sha }}"
 
       - name: SSH into Compute Engine and deploy Docker container
         run: |
           echo "SSH into Compute Engine and deploy Docker container..."
+          DOCKER_REGISTRY="${{ secrets.ARTIFACT_REGISTRY_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/${{ secrets.ARTIFACT_REGISTRY_NAME }}"
           gcloud compute ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_INSTANCE_IP }} --project ${{ secrets.GCP_PROJECT }} --zone ${{ secrets.GCE_ZONE }} --command "
-            docker pull gcr.io/${{ secrets.GCP_PROJECT }}/ai-interview:${{ github.sha }} &&
+            docker pull \"$DOCKER_REGISTRY/ai-interview:${{ github.sha }}\" &&
             docker stop ai-interview || true && # 컨테이너가 없으면 에러 무시
             docker rm ai-interview || true &&   # 컨테이너가 없으면 에러 무시
-            docker run -d -p 8080:8080 --name ai-interview gcr.io/${{ secrets.GCP_PROJECT }}/ai-interview:${{ github.sha }}
+            docker run -d -p 8080:8080 --name ai-interview \"$DOCKER_REGISTRY/ai-interview:${{ github.sha }}\"
           "
