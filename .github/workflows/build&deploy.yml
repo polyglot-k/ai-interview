@@ -44,7 +44,7 @@ jobs:
       - name: Build Docker Image
         run: |
           echo "Building Docker image..."
-          docker build -t gcr.io/YOUR_PROJECT_ID/your-app:$GITHUB_SHA .
+          docker build -t gcr.io/molten-muse-454108-h2/ai-interview:$GITHUB_SHA .
 
       - name: Log in to Google Cloud Docker registry
         env:
