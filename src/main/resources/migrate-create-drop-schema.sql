@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS interview_detail_feedback (
 -- VALUES ('ACTIVE', NOW(), 1);
 --
 -- -- 인터뷰 메시지 (질문과 답변) 추가
-INSERT INTO interview_message (i_id, sender, content, created_at) VALUES
+-- INSERT INTO interview_message (i_id, sender, content, created_at) VALUES
 -- -- 1. @Transactiona  l
 -- (1, 'LLM', 'Spring에서 @Transactional 어노테이션이 어떻게 작동하는지 설명해보세요. 그리고 어떤 경우에 예상과 다르게 롤백이 되지 않는지 예시를 들어주세요.', NOW()),
 -- (1, 'USER', '@Transactional은 메서드 실행을 하나의 트랜잭션으로 묶어주는 기능입니다. 메서드가 정상적으로 완료되면 커밋되고, 예외가 발생하면 롤백됩니다. 하지만 체크 예외는 기본적으로 롤백되지 않으며, 런타임 예외나 에러만 롤백됩니다. 예를 들어 try-catch로 예외를 처리하거나, @Transactional(rollbackFor = Exception.class)와 같이 롤백 조건을 명시하지 않으면 트랜잭션이 커밋될 수 있습니다.', NOW()),
@@ -168,5 +168,5 @@ INSERT INTO interview_message (i_id, sender, content, created_at) VALUES
 -- (1, 'LLM', 'Spring에서 @Entity 어노테이션은 무엇인가요?', NOW()),
 -- (1, 'USER', '@Entity 어노테이션은 해당 클래스가 JPA 엔티티임을 나타내는 어노테이션입니다. JPA는 이 클래스와 연결된 테이블을 생성하고, 객체와 관계형 데이터베이스 간의 매핑을 처리합니다.', NOW());
 -- -- 15. 기타
-(1, 'LLM', '자바스크립트의 실행 컨텍스트에 대해 대답해주세요', NOW()),
-(1, 'USER', '실행 컨텍스트란.. "실행 컨텍스트"다..', NOW());
+-- (1, 'LLM', '자바스크립트의 실행 컨텍스트에 대해 대답해주세요', NOW()),
+-- (1, 'USER', '실행 컨텍스트란.. "실행 컨텍스트"다..', NOW());
