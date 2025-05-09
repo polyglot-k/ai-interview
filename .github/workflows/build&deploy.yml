@@ -71,7 +71,7 @@ jobs:
           echo "SSH into Compute Engine and deploy Docker container..."
           gcloud compute ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_INSTANCE_IP }} --project ${{ secrets.GCP_PROJECT }} --zone ${{ secrets.GCE_ZONE }} --command "
             docker pull gcr.io/${{ secrets.GCP_PROJECT }}/ai-interview:${{ github.sha }} &&
-            docker stop ai-interview || true &&
-            docker rm ai-interview || true &&
+            docker stop ai-interview || true && # 컨테이너가 없으면 에러 무시
+            docker rm ai-interview || true &&   # 컨테이너가 없으면 에러 무시
             docker run -d -p 8080:8080 --name ai-interview gcr.io/${{ secrets.GCP_PROJECT }}/ai-interview:${{ github.sha }}
           "
