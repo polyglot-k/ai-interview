@@ -49,30 +49,23 @@ jobs:
       - name: Set up Google Cloud authentication
         uses: google-github-actions/auth@v2
         with:
-            credentials_json: ${{ secrets.GCP_SA_KEY }}
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Log in to Google Cloud Docker registry
         run: |
           echo "Authenticating with Google Cloud..."
-          echo "${{ secrets.GCP_SA_KEY }}" > /tmp/gcp-key.json
-          gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
+          gcloud auth activate-service-account --key-file="${{ secrets.GCP_SA_KEY }}"
           gcloud auth configure-docker
 
       - name: Push Docker Image to Google Container Registry
         run: |
           echo "Pushing Docker image to Google Container Registry..."
-          docker push gcr.io/molten-muse-454108-h2/your-app:$GITHUB_SHA
-
-      - name: Install Google Cloud SDK
-        run: |
-          echo "Installing Google Cloud SDK..."
-          curl -sSL https://sdk.cloud.google.com | bash
-          source $HOME/google-cloud-sdk/path.bash.inc
+          docker push gcr.io/molten-muse-454108-h2/ai-interview:$GITHUB_SHA
 
       - name: SSH into Compute Engine and deploy Docker container
         run: |
           echo "SSH into Compute Engine and deploy Docker container..."
-          gcloud compute ssh USER@YOUR_INSTANCE_IP --project YOUR_PROJECT_ID --zone YOUR_INSTANCE_ZONE --command "
-            docker pull gcr.io/YOUR_PROJECT_ID/your-app:$GITHUB_SHA &&
-            docker run -d -p 8080:8080 --name your-app gcr.io/YOUR_PROJECT_ID/your-app:$GITHUB_SHA
+          gcloud compute ssh ${{ secrets.GCE_USER }}@$YOUR_INSTANCE_IP --project ${{ secrets.GCP_PROJECT }} --zone ${{ secrets.GCE_ZONE }} --command "
+            docker pull gcr.io/molten-muse-454108-h2/ai-interview:$GITHUB_SHA &&
+            docker run -d -p 8080:8080 --name ai-interview gcr.io/molten-muse-454108-h2/ai-interview:$GITHUB_SHA
           "
