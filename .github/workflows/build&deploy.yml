@@ -1,0 +1,74 @@
+name: Build, Package, and Deploy Spring Boot App with Docker
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Decode and write application.yml
+        run: |
+          mkdir -p src/main/resources
+          echo "${{ secrets.APPLICATION_YML }}" | base64 --decode > src/main/resources/application.yml
+
+      - name: Decode and write application-prod.yml
+        run: |
+          mkdir -p src/main/resources
+          echo "${{ secrets.APPLICATION_PROD_YML }}" | base64 --decode > src/main/resources/application-prod.yml
+
+      - name: Decode and write jwt.yml
+        run: |
+          mkdir -p src/main/resources
+          echo "${{ secrets.APPLICATION_JWT }}" | base64 --decode > src/main/resources/jwt.yml
+
+      - name: Grant execute permission to gradlew
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew clean build
+
+      - name: Build Docker Image
+        run: |
+          echo "Building Docker image..."
+          docker build -t gcr.io/YOUR_PROJECT_ID/your-app:$GITHUB_SHA .
+
+      - name: Log in to Google Cloud Docker registry
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          echo "Authenticating with Google Cloud..."
+          gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+          gcloud auth configure-docker
+
+      - name: Push Docker Image to Google Container Registry
+        run: |
+          echo "Pushing Docker image to Google Container Registry..."
+          docker push gcr.io/YOUR_PROJECT_ID/your-app:$GITHUB_SHA
+
+      - name: Install Google Cloud SDK
+        run: |
+          echo "Installing Google Cloud SDK..."
+          curl -sSL https://sdk.cloud.google.com | bash
+          source $HOME/google-cloud-sdk/path.bash.inc
+
+      - name: SSH into Compute Engine and deploy Docker container
+        run: |
+          echo "SSH into Compute Engine and deploy Docker container..."
+          gcloud compute ssh USER@YOUR_INSTANCE_IP --project YOUR_PROJECT_ID --zone YOUR_INSTANCE_ZONE --command "
+            docker pull gcr.io/YOUR_PROJECT_ID/your-app:$GITHUB_SHA &&
+            docker run -d -p 8080:8080 --name your-app gcr.io/YOUR_PROJECT_ID/your-app:$GITHUB_SHA
+          "
