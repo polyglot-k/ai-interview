@@ -54,13 +54,14 @@ jobs:
       - name: Log in to Google Cloud Docker registry
         run: |
           echo "Authenticating with Google Cloud..."
-          gcloud auth activate-service-account --key-file=${{ secrets.GCP_SA_KEY }}
+          echo "${{ secrets.GCP_SA_KEY }}" > /tmp/gcp-key.json
+          gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
           gcloud auth configure-docker
 
       - name: Push Docker Image to Google Container Registry
         run: |
           echo "Pushing Docker image to Google Container Registry..."
-          docker push gcr.io/YOUR_PROJECT_ID/your-app:$GITHUB_SHA
+          docker push gcr.io/molten-muse-454108-h2/your-app:$GITHUB_SHA
 
       - name: Install Google Cloud SDK
         run: |
