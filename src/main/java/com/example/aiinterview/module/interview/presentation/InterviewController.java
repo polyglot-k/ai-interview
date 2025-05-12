@@ -4,14 +4,16 @@ import com.example.aiinterview.module.interview.application.InterviewSessionAppl
 import com.example.aiinterview.module.interview.domain.entity.InterviewMessage;
 import com.example.aiinterview.module.interview.domain.entity.InterviewSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/interviews")
+@RequestMapping("/api/v1/interviews")
 @RequiredArgsConstructor
 public class InterviewController {
     private final InterviewSessionApplicationService applicationService;
@@ -37,11 +39,14 @@ public class InterviewController {
      * @param message
      * @return
      */
-    @PostMapping("/{sessionId}/messages")
+    @GetMapping(value = "/{sessionId}/messages/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> sendMessage(@PathVariable Long sessionId,
-                                    @RequestAttribute("userId") Long memberId,
-                                    @RequestBody String message) {
-        return applicationService.sendMessage(sessionId, memberId, message);
+                                    @RequestAttribute("userId") Long userId,
+                                    @RequestParam("message") String message) {
+        Flux<String> messageFlux = applicationService.sendMessage(sessionId,  userId, message);
+        Flux<String> heartbeatFlux = Flux.interval(Duration.ofSeconds(1))
+                .map(tick -> "heartbeat: ping");
+        return Flux.merge(messageFlux, heartbeatFlux);
     }
 
 
