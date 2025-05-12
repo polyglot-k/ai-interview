@@ -1,4 +1,4 @@
-package com.example.aiinterview.module.interviewee.domain.entity;
+package com.example.aiinterview.module.user.domain.entity;
 
 import com.example.aiinterview.global.common.utils.CryptUtils;
 import lombok.AccessLevel;
@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Interviewee {
+public class User {
 
     @Id
     @Column("id")
@@ -39,20 +39,15 @@ public class Interviewee {
     @CreatedDate
     private LocalDateTime createdAt;
 
-    @Column("updated_at")
-    @LastModifiedDate
-    private LocalDateTime updatedAt;
-
-    public Interviewee(String email, String name, String password, LocalDateTime createdAt, LocalDateTime updatedAt) {
+   public User(String email, String name, String password, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.email = email;
         this.name = name;
         this.password = hashPassword(password);
         this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
+   }
 
-    public static Interviewee create(String email, String name, String password) {
-        return new Interviewee(email, name, password, LocalDateTime.now(), LocalDateTime.now());
+    public static User create(String email, String name, String password) {
+        return new User(email, name, password, LocalDateTime.now(), LocalDateTime.now());
     }
     private String hashPassword(String password){
         return CryptUtils.hashPassword(password);
