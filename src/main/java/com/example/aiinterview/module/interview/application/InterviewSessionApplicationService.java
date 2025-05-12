@@ -97,7 +97,7 @@ public class InterviewSessionApplicationService {
     private Flux<String> startLLMStreaming(Long sessionId, String message) {
         return interviewStreamer.stream(sessionId.intValue(), LLMPromptType.BACKEND, message)
                 .doOnNext(partialResponse -> appendLLMResponsePart(sessionId, partialResponse))
-                .delayElements(java.time.Duration.ofSeconds(10))
+                .delayElements(java.time.Duration.ofMillis(50))
                 .doOnComplete(()->saveLLMResponse(sessionId))
                 .subscribeOn(Schedulers.boundedElastic());
     }
