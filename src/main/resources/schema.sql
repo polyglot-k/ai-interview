@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS interviewee (
+CREATE TABLE IF NOT EXISTS user (
    id BIGINT AUTO_INCREMENT PRIMARY KEY,
    email VARCHAR(255) UNIQUE,
     name VARCHAR(255),
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS interview_session (
       status VARCHAR(20),
     feedback TEXT,
     created_at TIMESTAMP,
-    FOREIGN KEY (interviewee_id) REFERENCES interviewee(id) ON DELETE SET NULL
+    FOREIGN KEY (interviewee_id) REFERENCES user(id) ON DELETE SET NULL
     );
 
 CREATE TABLE IF NOT EXISTS interview_messages (
@@ -25,10 +25,10 @@ CREATE TABLE IF NOT EXISTS interview_messages (
         FOREIGN KEY (room_id) REFERENCES interview_session(id) ON DELETE CASCADE
     );
 
-INSERT INTO interviewee (email, name, password, created_at, updated_at)
+INSERT INTO user (email, name, password, created_at, updated_at)
 VALUES ('testuser@example.com', '테스트 유저', '$2a$10$b2fYsaeG/hBBgYUAtg4sxeXtuacBfsqOJ4vpqYJUiF3c.B2Sf7Mcy', NOW(), NOW());
 
-INSERT INTO interviewee (email, name, password, created_at, updated_at)
+INSERT INTO user (email, name, password, created_at, updated_at)
 VALUES ('testuser2@example.com', '테스트 유저', '$2a$10$b2fYsaeG/hBBgYUAtg4sxeXtuacBfsqOJ4vpqYJUiF3c.B2Sf7Mcy', NOW(), NOW());
 
 INSERT INTO interview_session(interviewee_id,status,feedback,created_at)
