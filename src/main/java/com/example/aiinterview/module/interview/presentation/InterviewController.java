@@ -1,6 +1,7 @@
 package com.example.aiinterview.module.interview.presentation;
 
-import com.example.aiinterview.module.interview.application.InterviewSessionApplicationService;
+import com.example.aiinterview.module.interview.application.InterviewSessionService;
+import com.example.aiinterview.module.interview.application.dto.SseResponse;
 import com.example.aiinterview.module.interview.domain.entity.InterviewMessage;
 import com.example.aiinterview.module.interview.domain.entity.InterviewSession;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ import java.util.List;
 @RequestMapping("/api/v1/interviews")
 @RequiredArgsConstructor
 public class InterviewController {
-    private final InterviewSessionApplicationService applicationService;
+    private final InterviewSessionService applicationService;
 
     @GetMapping()
     public Mono<List<InterviewSession>> retrieveInterviewRoom(@RequestAttribute("userId") Long memberId){
@@ -40,15 +41,13 @@ public class InterviewController {
      * @return
      */
     @GetMapping(value = "/{sessionId}/messages/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> sendMessage(@PathVariable Long sessionId,
-                                    @RequestAttribute("userId") Long userId,
-                                    @RequestParam("message") String message) {
-        Flux<String> messageFlux = applicationService.sendMessage(sessionId,  userId, message);
-        Flux<String> heartbeatFlux = Flux.interval(Duration.ofSeconds(1))
-                .map(tick -> "heartbeat: ping")
-                .takeUntilOther(messageFlux.ignoreElements());
-
-        return Flux.merge(messageFlux, heartbeatFlux);
+    public Flux<SseResponse> sendMessage(@PathVariable Long sessionId,
+                                         @RequestAttribute("userId") Long userId,
+                                         @RequestParam("message") String message) {
+        Flux<SseResponse> messageFlux = applicationService.sendMessageAndStreamingLLM(sessionId, userId, message);
+        Flux<SseResponse> heartbeatFlux = generateHeartbeatPing().takeUntilOther(messageFlux);
+        return Flux.merge(messageFlux, heartbeatFlux)
+                .concatWith(Mono.just(SseResponse.complete()));
     }
 
 
@@ -56,5 +55,10 @@ public class InterviewController {
     public Mono<String> retrieveMessageHistory(@PathVariable Long sessionId,
                                                @RequestAttribute("userId") Long memberId){
         return applicationService.retrieveMessageBuffer(sessionId);
+    }
+    private Flux<SseResponse> generateHeartbeatPing(){
+        return Flux.interval(Duration.ofSeconds(1))
+                .map(tick -> SseResponse.heartbeat());
+
     }
 }
