@@ -23,8 +23,8 @@ public class InterviewController {
         return applicationService.retrieveInterviewRoom(memberId);
     }
     @PostMapping()
-    public Mono<InterviewSession> createRoom(@RequestParam("userId") Long memberId) {
-        return applicationService.createRoom(memberId);
+    public Mono<InterviewSession> createRoom(@RequestAttribute("userId") Long userId) {
+        return applicationService.createRoom(userId);
     }
 
     @GetMapping("/{sessionId}/messages")
@@ -45,7 +45,9 @@ public class InterviewController {
                                     @RequestParam("message") String message) {
         Flux<String> messageFlux = applicationService.sendMessage(sessionId,  userId, message);
         Flux<String> heartbeatFlux = Flux.interval(Duration.ofSeconds(1))
-                .map(tick -> "heartbeat: ping");
+                .map(tick -> "heartbeat: ping")
+                .takeUntilOther(messageFlux.ignoreElements());
+
         return Flux.merge(messageFlux, heartbeatFlux);
     }
 
