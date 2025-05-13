@@ -44,7 +44,7 @@ public class AccessControlFilter implements WebFilter {
         String path = request.getURI().getPath();
         String method = request.getMethod().toString();
 
-        if (isWhiteListed(path, method)) {
+        if (isWhiteListed(path, method) || "OPTIONS".equals(method)) {
             return chain.filter(exchange);
         }
 
