@@ -1,4 +1,4 @@
-name: Build, Package, and Deploy Spring Boot App with Docker
+name: Just Build with JDK 21
 
 on:
   push:
@@ -44,39 +44,3 @@ jobs:
 
       - name: Build with Gradle
         run: ./gradlew clean build -x test # 테스트 건너뛰고 빌드 (필요에 따라 제거)
-
-      - name: Build Docker Image
-        run: |
-          echo "Building Docker image..."
-          DOCKER_REGISTRY="${{ secrets.ARTIFACT_REGISTRY_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/${{ secrets.ARTIFACT_REGISTRY_NAME }}"
-          docker build -t "$DOCKER_REGISTRY/ai-interview:${{ github.sha }}" .
-
-      - name: Set up Google Cloud authentication
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-      - name: Setup Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-
-      - name: Check gcloud Auth
-        run: gcloud auth list
-
-      - name: Push Docker Image to Artifact Registry
-        run: |
-          
-          echo "Pushing Docker image to Artifact Registry..."
-          DOCKER_REGISTRY="${{ secrets.ARTIFACT_REGISTRY_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/${{ secrets.ARTIFACT_REGISTRY_NAME }}"
-          docker push "$DOCKER_REGISTRY/ai-interview:${{ github.sha }}"
-
-      - name: SSH into Compute Engine and deploy Docker container
-        run: |
-          echo "SSH into Compute Engine and deploy Docker container..."
-          DOCKER_REGISTRY="${{ secrets.ARTIFACT_REGISTRY_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/${{ secrets.ARTIFACT_REGISTRY_NAME }}"
-          gcloud compute ssh ${{ secrets.GCE_USER }}@${{ secrets.GCE_INSTANCE_IP }} --project ${{ secrets.GCP_PROJECT }} --zone ${{ secrets.GCE_ZONE }} --command "
-            docker pull \"$DOCKER_REGISTRY/ai-interview:${{ github.sha }}\" &&
-            docker stop ai-interview || true && # 컨테이너가 없으면 에러 무시
-            docker rm ai-interview || true &&   # 컨테이너가 없으면 에러 무시
-            docker run -d -p 8080:8080 --name ai-interview \"$DOCKER_REGISTRY/ai-interview:${{ github.sha }}\"
-          "
