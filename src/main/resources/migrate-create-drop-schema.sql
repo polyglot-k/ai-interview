@@ -99,11 +99,18 @@ CREATE TABLE IF NOT EXISTS interview_detail_feedback (
        on delete cascade
        on update cascade
 );
+CREATE TABLE  IF NOT EXISTS chat_memory (
+
+ memory_id bigint PRIMARY KEY,
+
+ messages_json TEXT
+
+);
 --
 -- -- 유저 추가
 -- INSERT INTO users (email, name, password, created_at)
 -- VALUES
---     ('testuser@example.com', '테스트 유저', '$2a$10$b2fYsaeG/hBBgYUAtg4sxeXtuacBfsqOJ4vpqYJUiF3c.B2Sf7Mcy', NOW()),
+    --     ('testuser@example.com', '테스트 유저', '$2a$10$b2fYsaeG/hBBgYUAtg4sxeXtuacBfsqOJ4vpqYJUiF3c.B2Sf7Mcy', NOW()),
 --     ('testuser2@example.com', '테스트 유저2', '$2a$10$b2fYsaeG/hBBgYUAtg4sxeXtuacBfsqOJ4vpqYJUiF3c.B2Sf7Mcy', NOW());
 --
 -- -- 인터뷰 세션 추가

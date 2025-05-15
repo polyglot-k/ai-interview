@@ -90,3 +90,10 @@ CREATE TABLE IF NOT EXISTS interview_detail_feedback (
        on delete cascade
        on update cascade
 );
+CREATE TABLE  IF NOT EXISTS chat_memory (
+
+                                            memory_id varchar(255) PRIMARY KEY,
+
+                                            messages_json TEXT
+
+);
