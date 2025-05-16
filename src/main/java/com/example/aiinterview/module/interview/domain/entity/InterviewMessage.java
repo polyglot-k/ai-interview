@@ -1,5 +1,6 @@
 package com.example.aiinterview.module.interview.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
@@ -25,6 +26,7 @@ public class InterviewMessage {
     private String message;
 
     @Column("created_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime createdAt;
 
 

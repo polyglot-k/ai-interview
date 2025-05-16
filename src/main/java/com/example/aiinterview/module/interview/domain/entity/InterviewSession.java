@@ -1,5 +1,6 @@
 package com.example.aiinterview.module.interview.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
 public class InterviewSession {
 
     @Id  // Primary Key 지정
@@ -21,8 +23,11 @@ public class InterviewSession {
     @Column("status")
     private InterviewSessionStatus status;  // InterviewSessionStatus Enum의 String 값으로 처리
     @Column("started_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime startedAt;
+
     @Column("ended_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endedAt = null;
 
     @Column("u_id")

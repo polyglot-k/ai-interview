@@ -1,6 +1,7 @@
 package com.example.aiinterview.module.user.domain.entity;
 
 import com.example.aiinterview.global.common.utils.CryptUtils;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -37,6 +38,7 @@ public class User {
 
     @Column("created_at")
     @CreatedDate
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime createdAt;
 
    public User(String email, String name, String password, LocalDateTime createdAt, LocalDateTime updatedAt) {
