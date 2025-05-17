@@ -1,9 +1,11 @@
 package com.example.aiinterview.module.auth.domain;
 
+import com.example.aiinterview.module.auth.exception.InvalidTokenException;
+
 public record AccessToken(String value) {
     public AccessToken {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("AccessToken cannot be null or blank");
+            throw new InvalidTokenException();
         }
     }
 

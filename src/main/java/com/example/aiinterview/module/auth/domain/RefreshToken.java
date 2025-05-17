@@ -1,9 +1,11 @@
 package com.example.aiinterview.module.auth.domain;
 
+import com.example.aiinterview.module.auth.exception.InvalidTokenException;
+
 public record RefreshToken(String value) {
     public RefreshToken {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("RefreshToken cannot be null or blank");
+            throw new InvalidTokenException();
         }
     }
 
