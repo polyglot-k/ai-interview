@@ -11,27 +11,27 @@ public class SessionStreamingStatusRegistry {
     private final ReactiveRedisTemplate<String, String> redisTemplate;
     private static final String PREFIX = "session-room:streaming";
 
-    public Mono<Boolean> isStreamingInProgress(Long roomId) {
+    public Mono<Boolean> isStreamingInProgress(Long sessionId) {
         return redisTemplate.opsForValue()
-                .get(PREFIX + roomId)
+                .get(PREFIX + sessionId)
                 .map(StreamingStatus::isInProgress)
                 .defaultIfEmpty(false);
     }
-    public Mono<Void> setStreamStatus(Long roomId, StreamingStatus status) {
+    public Mono<Void> setStreamStatus(Long sessionId, StreamingStatus status) {
         return switch (status){
-            case IN_PROGRESS -> startStreaming(roomId);
-            case TERMINATED -> stopStreaming(roomId);
+            case IN_PROGRESS -> startStreaming(sessionId);
+            case TERMINATED -> stopStreaming(sessionId);
         };
     }
-    private Mono<Void> startStreaming(Long roomId){
+    private Mono<Void> startStreaming(Long sessionId){
         return redisTemplate.opsForValue()
-                .set(PREFIX + roomId, StreamingStatus.IN_PROGRESS.toString())
+                .set(PREFIX + sessionId, StreamingStatus.IN_PROGRESS.toString())
                 .then();
     }
 
-    private Mono<Void> stopStreaming(Long roomId){
+    private Mono<Void> stopStreaming(Long sessionId){
         return redisTemplate
-                .delete(PREFIX + roomId)
+                .delete(PREFIX + sessionId)
                 .then();
     }
     public enum StreamingStatus {
