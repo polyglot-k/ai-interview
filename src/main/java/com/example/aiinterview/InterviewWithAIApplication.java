@@ -28,7 +28,7 @@ public class InterviewWithAIApplication implements CommandLineRunner{
 
     @Override
     public void run(String... args) throws Exception {
-        registry.setStreamStatus(1L, SessionStreamingStatusRegistry.StreamingStatus.TERMINATED).block();
+        // registry.setStreamStatus(1L, SessionStreamingStatusRegistry.StreamingStatus.TERMINATED).block();
     }
 }
 
