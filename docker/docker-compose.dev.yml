@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  ai-interview:
+    image: ${AI_INTERVIEW_IMAGE}
+    container_name: ${AI_INTERVIEW_CONTAINER}
+    ports:
+      - "${AI_INTERVIEW_PORT}:8080"
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - mysql
+    networks:
+      - interview-net
+
+  mysql:
+    image: ${MYSQL_IMAGE}
+    container_name: ${MYSQL_CONTAINER}
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    expose:
+      - "3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - interview-net
+
+  mysqld_exporter:
+    image: ${MYSQLD_EXPORTER_IMAGE}
+    container_name: ${MYSQLD_EXPORTER_CONTAINER}
+    ports:
+      - "${MYSQLD_EXPORTER_PORT}:9104"
+    command:
+      - "--mysqld.username=${MYSQLD_EXPORTER_USER}:${MYSQLD_EXPORTER_PASSWORD}"
+      - "--mysqld.address=mysql:3306"
+    networks:
+      - interview-net
+
+  redis:
+    image: ${REDIS_IMAGE}
+    container_name: ${REDIS_CONTAINER}
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+    networks:
+      - interview-net
+
+  redis-exporter:
+    image: "${REDIS_EXPORTER_IMAGE}"
+    container_name: "${REDIS_EXPORTER_CONTAINER}"
+    environment:
+      - REDIS_ADDR=${REDIS_EXPORTER_ADDR}
+    ports:
+      - "${REDIS_EXPORTER_PORT}:9121"
+    networks:
+      - interview-net
+
+  prometheus:
+    image: ${PROMETHEUS_IMAGE}
+    container_name: ${PROMETHEUS_CONTAINER}
+    volumes:
+      - ./prometheus/config.yml:/etc/prometheus/config.yml
+      - ./prometheus/data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/config.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "${PROMETHEUS_PORT}:9090"
+    networks:
+      - interview-net
+
+  grafana:
+    image: ${GRAFANA_IMAGE}
+    container_name: ${GRAFANA_CONTAINER}
+    ports:
+      - "${GRAFANA_PORT}:3000"
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - interview-net
+
+  promtail:
+    image: ${PROMTAIL_IMAGE}
+    container_name: ${PROMTAIL_CONTAINER}
+    volumes:
+      - ./promtail/config.yml:/etc/promtail/config.yml
+      - ./logs:/var/log/spring-app
+    command:
+      - -config.file=/etc/promtail/config.yml
+      - -config.expand-env=true
+    depends_on:
+      - loki
+    networks:
+      - interview-net
+
+  loki:
+    image: ${LOKI_IMAGE}
+    container_name: ${LOKI_CONTAINER}
+    ports:
+      - "${LOKI_PORT}:3100"
+    volumes:
+      - ./loki/data:/var/lib/loki
+    networks:
+      - interview-net
+
+volumes:
+  mysql-data:
+  redis_data:
+
+networks:
+  interview-net:
+    driver: bridge
