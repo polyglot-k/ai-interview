@@ -16,7 +16,6 @@ public class MessageBufferRegistry {
         String redisKey = generateMessageBufferKey(sessionId);
         return redisTemplate.opsForValue().get(redisKey);
     }
-    //TODO: 로깅의 순서가 지켜지지 않을 수 도 있음.
     public Mono<Void> appendMessageBuffer(Long sessionId, String partialBuffer){
         String redisKey = generateMessageBufferKey(sessionId);
         return redisTemplate.opsForValue().append(redisKey, partialBuffer)
