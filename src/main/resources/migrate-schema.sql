@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
    id bigint primary key auto_increment,
    name varchar(100),
-   email varchar(255),
+   email varchar(255) unique,
    password varchar(255),
    role varchar(50),
    created_at datetime
