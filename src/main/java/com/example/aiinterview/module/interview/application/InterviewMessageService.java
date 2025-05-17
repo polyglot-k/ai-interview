@@ -2,6 +2,7 @@ package com.example.aiinterview.module.interview.application;
 
 import com.example.aiinterview.module.interview.domain.entity.InterviewMessage;
 import com.example.aiinterview.module.interview.domain.entity.InterviewSender;
+import com.example.aiinterview.module.interview.exception.InterviewSessionNotFoundException;
 import com.example.aiinterview.module.interview.infrastructure.repository.InterviewMessageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,6 @@ public class InterviewMessageService {
     public Mono<List<InterviewMessage>> retrieveMessage(Long sessionId, Long memberId) {
         return messageRepository.findBySessionId(sessionId)
                 .collectList()
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("면접방이 존재하지 않습니다.")));
+                .switchIfEmpty(Mono.error(InterviewSessionNotFoundException::new));
     }
 }
