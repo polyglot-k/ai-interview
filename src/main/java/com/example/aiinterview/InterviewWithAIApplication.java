@@ -1,32 +1,34 @@
 package com.example.aiinterview;
 
+import com.example.aiinterview.module.interview.infrastructure.SessionStreamingStatusRegistry;
 import com.example.aiinterview.module.llm.analysis.InterviewSessionAnalyzer;
-import com.example.aiinterview.module.llm.analysis.dto.InterviewSessionResult;
-import com.example.aiinterview.module.llm.analysis.dto.PartialEvaluation;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.time.LocalDateTime;
+import java.util.TimeZone;
 @SpringBootApplication
+@Slf4j
 @RequiredArgsConstructor
 public class InterviewWithAIApplication implements CommandLineRunner{
-    private final InterviewSessionAnalyzer analyzer;
+    private final SessionStreamingStatusRegistry registry;
+    @PostConstruct
+    public void initTimeZone(){
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
+        log.info("TimeZone Setting 성공 - [현재 시간] {}", LocalDateTime.now());
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(InterviewWithAIApplication.class, args);
     }
+
     @Override
-    public void  run(String... args) throws Exception {
-        InterviewSessionResult result = analyzer.analyze(1L).block();
-        assert result != null;
-        for(PartialEvaluation e:result.evaluations()){
-            System.out.println(e.feedback());
-            System.out.println(e.interviewMessageId());
-            System.out.println(e.score());
-            System.out.println("===========================");
-        }
-        System.exit(1);
+    public void run(String... args) throws Exception {
+        registry.setStreamStatus(1L, SessionStreamingStatusRegistry.StreamingStatus.TERMINATED).block();
     }
 }
 
