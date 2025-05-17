@@ -23,14 +23,14 @@ public class AssistantConfiguration {
     public BackendAssistant backendAssistant(StreamingChatLanguageModel model){
         return AiServices.builder(BackendAssistant.class)
                 .streamingChatLanguageModel(model)
-                .chatMemoryProvider(memoryId -> memory())
+                .chatMemoryProvider(this::memory)
                 .build();
     }
     @Bean
     public FrontendAssistant frontendAssistant(StreamingChatLanguageModel model){
         return AiServices.builder(FrontendAssistant.class)
                 .streamingChatLanguageModel(model)
-                .chatMemoryProvider(memoryId -> memory())
+                .chatMemoryProvider(this::memory)
                 .build();
     }
     @Bean
@@ -44,8 +44,9 @@ public class AssistantConfiguration {
                 );
     }
 
-    public ChatMemory memory(){
+    public ChatMemory memory(Object id){
         return MessageWindowChatMemory.builder()
+                .id(id)
                 .maxMessages(10)
                 .chatMemoryStore(chatMemoryStore)
                 .build();
