@@ -64,7 +64,7 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     
     // Swagger
-    implementation "org.springdoc:springdoc-openapi-starter-webflux-ui:2.2.0"
+    implementation "org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0"
 
     //redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
@@ -79,6 +79,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
+    //aop
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
 }
 
 tasks.named('test') {
