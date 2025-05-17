@@ -7,6 +7,7 @@ import com.example.aiinterview.module.auth.application.dto.LoginResponse;
 import com.example.aiinterview.module.auth.domain.AccessToken;
 import com.example.aiinterview.module.auth.domain.RefreshToken;
 import com.example.aiinterview.module.auth.domain.port.MemberRetrievalPort;
+import com.example.aiinterview.module.auth.exception.InvalidPasswordException;
 import com.example.aiinterview.module.auth.infrastructure.AuthTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ public class AuthService {
         return memberRetrievalPort.findByEmail(request.email())
                 .flatMap(member -> {
                     if (!CryptUtils.matches(request.password(),member.getPassword())) {
-                        return Mono.error(new RuntimeException("비밀번호가 일치하지 않습니다."));
+                        return Mono.error(InvalidPasswordException::new);
                     }
 
                     AuthorizationPayload payload = new AuthorizationPayload(
