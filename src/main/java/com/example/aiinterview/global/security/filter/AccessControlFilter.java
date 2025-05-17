@@ -31,7 +31,7 @@ public class AccessControlFilter implements WebFilter {
             new WhiteListEntry("/v3/api-docs", "GET"),
             new WhiteListEntry("/v3/api-docs/**", "GET"),
             new WhiteListEntry("/webjars/**", "GET"),
-            new WhiteListEntry("/actuator/**", "GET"),
+            new WhiteListEntry("/actuator/**", "GET")
             // 스트림 엔드포인트는 화이트 리스트에서 제외하고 인증 처리
             // new WhiteListEntry("/api/v1/interviews/*/messages/stream", "GET")
     );
