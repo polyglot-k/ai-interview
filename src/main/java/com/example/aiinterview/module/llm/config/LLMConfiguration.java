@@ -44,10 +44,11 @@ public class LLMConfiguration {
         Map<String, JsonSchemaElement> properties = Map.of(
                 "evaluations", JsonArraySchema.builder()
                         .items(JsonObjectSchema.builder()
-                                .addNumberProperty("interviewMessageId","USER 응답 대한 id 값 표기해줘")
+                                .addNumberProperty("llmMessageId","LLM 응답 대한 id 값 표기해줘 ")
+                                .addNumberProperty("userMessageId","USER 응답 대한 id 값 표기해줘 ")
                                 .addNumberProperty("score","답변에 대한 점수를 적어줘 (100점 만점), 잘못된 부분이 존재하면 점수를 엄청 낮게 줘")
                                 .addStringProperty("feedback","해당 답변에 대한 피드백을 자세하게 한글로 해줘.(신입 면접 상황이야) 만약 피드백이 없다면, 칭찬해줘")
-                                .required("interviewMessageId","score","feedback")
+                                .required("llmMessageId","userMessageId","score","feedback")
                                 .build())
                         .build()
         );
@@ -58,8 +59,7 @@ public class LLMConfiguration {
                         .rootElement(JsonObjectSchema.builder() // see [1] below
                                 .addProperties(properties)
                                 .addNumberProperty("overallAverageScore","evaluations 의 score들을 기반으로 평균을 내줘")
-                                .addIntegerProperty("overallFeedback", "전체적인 피드백을 한글로 해줘")
-
+                                .addStringProperty("overallFeedback", "전체적인 피드백을 한글로 맵게 해줘(약점, 개선할 점, 잘한점)")
                                 .required("overallAverageScore", "overallFeedback", "evaluations") // see [2] below
                                 .build())
                         .build())
