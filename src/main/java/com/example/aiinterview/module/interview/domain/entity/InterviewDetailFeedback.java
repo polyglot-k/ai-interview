@@ -1,5 +1,6 @@
 package com.example.aiinterview.module.interview.domain.entity;
 
+import com.example.aiinterview.module.llm.analysis.dto.PartialEvaluation;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -22,12 +23,24 @@ public class InterviewDetailFeedback {
     private String feedback;
 
     @Column("score")
-    private Integer score;
+    private double score;
 
     @Column("created_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime createdAt;
 
-    @Column("im_id")
-    private Long interviewMessageId;
+    @Column("llm_id")
+    private Long llmMessageId;
+    @Column("user_id")
+    private Long userMessageId;
+
+    public static InterviewDetailFeedback of(PartialEvaluation evaluation) {
+        return InterviewDetailFeedback.builder()
+                .feedback(evaluation.feedback())
+                .score(evaluation.score())
+                .createdAt(LocalDateTime.now())
+                .llmMessageId(evaluation.llmMessageId())
+                .userMessageId(evaluation.userMessageId())
+                .build();
+    }
 }
