@@ -14,7 +14,6 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
 import reactor.core.scheduler.Schedulers;
 
-
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -25,30 +24,18 @@ public class LLMInterviewStreamingService {
     private final SessionStreamingStatusRegistry streamingStatusRegistry;
 
     public Flux<String> startInterviewStreaming(Long sessionId, LLMPromptType type, String message) {
-        return Mono.defer(() ->
-                        streamingStatusRegistry.isStreamingInProgress(sessionId)
-                                .flatMap(inProgress -> {
-                                    log.info("in progress: {}", inProgress);
-                                    if (inProgress) {
-                                        return Mono.error(StreamingAlreadyInProgressException::new);
-                                    }
-                                    return streamingStatusRegistry.setStreamStatus(sessionId, SessionStreamingStatusRegistry.StreamingStatus.IN_PROGRESS);
-                                })
-                )
+        return streamingStatusRegistry.isStreamingInProgress(sessionId)
+                .flatMap(inProgress -> {
+                    if (inProgress) {
+                        return Mono.error(StreamingAlreadyInProgressException::new);
+                    }
+                    return streamingStatusRegistry.setStreamStatus(sessionId, SessionStreamingStatusRegistry.StreamingStatus.IN_PROGRESS);
+                })
                 .thenMany(
                         interviewStreamer.stream(sessionId.intValue(), type, message)
                                 .flatMap(partialResponse -> appendPartialResponse(sessionId, partialResponse).thenReturn(partialResponse))
                                 .delayElements(java.time.Duration.ofMillis(10))
-                                .doFinally(signalType -> {
-                                    if (signalType == SignalType.ON_COMPLETE || signalType == SignalType.ON_ERROR || signalType == SignalType.CANCEL) {
-                                        saveResponse(sessionId)
-                                                .subscribeOn(Schedulers.boundedElastic())
-                                                .subscribe();
-                                        streamingStatusRegistry.setStreamStatus(sessionId, SessionStreamingStatusRegistry.StreamingStatus.TERMINATED)
-                                                .subscribeOn(Schedulers.boundedElastic())
-                                                .subscribe();
-                                    }
-                                })
+                                .doFinally(signalType -> handleStreamCompletion(sessionId, signalType))
                                 .subscribeOn(Schedulers.boundedElastic())
                 );
     }
@@ -62,6 +49,17 @@ public class LLMInterviewStreamingService {
                 .doOnSuccess(length -> log.debug("Room {}: Appended '{}', current length: {}", sessionId, partialResponse, length))
                 .doOnError(error -> log.error("Room {}: Error appending '{}': {}", sessionId, partialResponse, error.getMessage()))
                 .then();
+    }
+
+    private void handleStreamCompletion(Long sessionId, SignalType signalType) {
+        if (signalType == SignalType.ON_COMPLETE || signalType == SignalType.ON_ERROR || signalType == SignalType.CANCEL) {
+            saveResponse(sessionId)
+                    .subscribeOn(Schedulers.boundedElastic())
+                    .subscribe();
+            streamingStatusRegistry.setStreamStatus(sessionId, SessionStreamingStatusRegistry.StreamingStatus.TERMINATED)
+                    .subscribeOn(Schedulers.boundedElastic())
+                    .subscribe();
+        }
     }
 
     private Mono<Void> saveResponse(Long sessionId) {
