@@ -3,7 +3,7 @@ package com.example.aiinterview.module.user.application;
 import com.example.aiinterview.module.user.application.dto.CreateMemberRequest;
 import com.example.aiinterview.module.user.domain.entity.User;
 import com.example.aiinterview.module.user.exception.DuplicateEmailException;
-import com.example.aiinterview.module.user.infrastructure.UserRepository;
+import com.example.aiinterview.module.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
