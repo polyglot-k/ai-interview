@@ -50,7 +50,10 @@ public class InterviewMessage {
                 .createdAt(LocalDateTime.now())
                 .build();
     }
+    public String buildToPromptText(){
+        return "[ id : " + this.getId() + "]" + this.getSender() + ": " + this.getMessage();
 
+    }
     @Override
     public String toString() {
         return "InterviewMessage{" +
