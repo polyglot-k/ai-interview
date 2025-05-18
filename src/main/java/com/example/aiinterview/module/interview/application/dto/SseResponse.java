@@ -12,4 +12,8 @@ public record SseResponse(String event, String data) {
     public static SseResponse heartbeat() {
         return new SseResponse("heartbeat", "💓");
     }
+
+    public static SseResponse terminated() {
+        return new SseResponse("terminated", "종료");
+    }
 }
