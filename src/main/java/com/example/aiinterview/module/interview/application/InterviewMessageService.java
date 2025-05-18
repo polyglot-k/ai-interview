@@ -3,7 +3,7 @@ package com.example.aiinterview.module.interview.application;
 import com.example.aiinterview.module.interview.domain.entity.InterviewMessage;
 import com.example.aiinterview.module.interview.domain.entity.InterviewSender;
 import com.example.aiinterview.module.interview.exception.InterviewSessionNotFoundException;
-import com.example.aiinterview.module.interview.infrastructure.repository.InterviewMessageRepository;
+import com.example.aiinterview.module.interview.domain.repository.InterviewMessageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -26,9 +26,17 @@ public class InterviewMessageService {
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
-    public Mono<List<InterviewMessage>> retrieveMessage(Long sessionId, Long memberId) {
+    public Mono<List<InterviewMessage>> retrieveMessage(Long sessionId) {
         return messageRepository.findBySessionId(sessionId)
                 .collectList()
                 .switchIfEmpty(Mono.error(InterviewSessionNotFoundException::new));
+    }
+
+    public Mono<Long> retrieveCount(Long sessionId) {
+        return messageRepository.countBySessionIdAndSender(sessionId, "USER");
+    }
+
+    public Mono<Void> deleteLastMessage(Long sessionId) {
+        return messageRepository.deleteById(sessionId);
     }
 }
