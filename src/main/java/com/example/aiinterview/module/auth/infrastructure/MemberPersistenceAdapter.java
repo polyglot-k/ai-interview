@@ -4,7 +4,7 @@ import com.example.aiinterview.global.exception.ErrorCode;
 import com.example.aiinterview.module.auth.domain.port.MemberRetrievalPort;
 import com.example.aiinterview.module.user.domain.entity.User;
 import com.example.aiinterview.module.user.exception.UserNotFoundException;
-import com.example.aiinterview.module.user.infrastructure.UserRepository;
+import com.example.aiinterview.module.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
