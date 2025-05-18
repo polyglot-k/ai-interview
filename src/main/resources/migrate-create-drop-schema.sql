@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS interview_session (
 
 CREATE TABLE IF NOT EXISTS interview_result_summary (
     id bigint primary key auto_increment,
-    overall_score int,
+    overall_score double,
     overall_feedback text,
     created_at datetime,
     i_id bigint,
@@ -92,12 +92,16 @@ CREATE TABLE IF NOT EXISTS interview_recap_feedback (
 CREATE TABLE IF NOT EXISTS interview_detail_feedback (
     id bigint primary key auto_increment,
     feedback_text text,
-    score int,
+    score double,
     created_at datetime,
-    im_id bigint,
-    foreign key (im_id) references interview_message(id)
-       on delete cascade
-       on update cascade
+    llm_id bigint,
+    user_id bigint,
+    foreign key (llm_id) references interview_message(id)
+    on delete cascade
+    on update cascade,
+    foreign key (user_id) references interview_message(id)
+    on delete cascade
+    on update cascade
 );
 CREATE TABLE  IF NOT EXISTS chat_memory (
 
