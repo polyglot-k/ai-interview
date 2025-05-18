@@ -1,4 +1,4 @@
-package com.example.aiinterview.module.user.infrastructure;
+package com.example.aiinterview.module.user.domain.repository;
 
 import com.example.aiinterview.module.user.domain.entity.User;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
