@@ -7,10 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 
 import java.time.LocalDateTime;
 import java.util.TimeZone;
 @SpringBootApplication
+@EnableR2dbcRepositories
 @Slf4j
 @RequiredArgsConstructor
 public class InterviewWithAIApplication implements CommandLineRunner{

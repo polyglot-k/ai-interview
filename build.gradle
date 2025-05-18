@@ -54,6 +54,9 @@ dependencies {
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
     // 테스트
@@ -71,6 +74,7 @@ dependencies {
     implementation 'io.lettuce:lettuce-core'
 
     implementation 'io.asyncer:r2dbc-mysql:1.4.0'
+    implementation 'io.r2dbc:r2dbc-proxy:1.1.6.RELEASE'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
     testImplementation 'io.projectreactor:reactor-test'
