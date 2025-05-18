@@ -1,5 +1,6 @@
 package com.example.aiinterview.module.interview.domain.entity;
 
+import com.example.aiinterview.module.llm.analysis.dto.InterviewSessionResult;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -19,7 +20,7 @@ public class InterviewResultSummary {
     private Long id;
 
     @Column("overall_score")
-    private Integer overallScore;
+    private double overallScore;
 
     @Column("overall_feedback")
     private String overallFeedback;
@@ -30,4 +31,13 @@ public class InterviewResultSummary {
 
     @Column("i_id") // FK
     private Long interviewSessionId;
+
+    public static InterviewResultSummary of(Long sessionId, String overallFeedback, double overallScore) {
+        return InterviewResultSummary.builder()
+                .interviewSessionId(sessionId)
+                .overallScore(overallScore)
+                .overallFeedback(overallFeedback)
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
 }
