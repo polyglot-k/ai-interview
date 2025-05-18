@@ -43,6 +43,7 @@ public class InterviewSession {
 
     public void end() {
         status = InterviewSessionStatus.ENDED;  // Enum을 String 값으로 저장
+        endedAt = LocalDateTime.now();
     }
 
     public void appendMessage(Long messageId) {
