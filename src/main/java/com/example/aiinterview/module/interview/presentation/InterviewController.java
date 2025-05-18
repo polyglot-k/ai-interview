@@ -3,7 +3,7 @@ package com.example.aiinterview.module.interview.presentation;
 import com.example.aiinterview.global.common.response.ResponseFactory;
 import com.example.aiinterview.global.common.response.dto.ApiResponse;
 import com.example.aiinterview.global.sse.SseMapping;
-import com.example.aiinterview.module.interview.application.InterviewSessionService;
+import com.example.aiinterview.module.interview.application.InterviewApplicationService;
 import com.example.aiinterview.module.interview.application.dto.SseResponse;
 import com.example.aiinterview.module.interview.domain.entity.InterviewMessage;
 import com.example.aiinterview.module.interview.domain.entity.InterviewSession;
@@ -25,13 +25,13 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "INTERVIEW API", description = "인터뷰 관련 기능을 제공하는 API입니다.")
 public class InterviewController {
-    private final InterviewSessionService applicationService;
+    private final InterviewApplicationService applicationService;
 
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "인터뷰 세션 조회(토큰 필요)", description = "토큰을 포함해야 하며, 인터뷰 세션(방) 을 조회합니다.")
     public Mono<ApiResponse<List<InterviewSession>>> retrieveInterviewSession(@RequestAttribute("userId") Long memberId){
-        return applicationService.retrieveInterviewSession(memberId)
+        return applicationService.retrieveInterviewSessions(memberId)
                 .flatMap(ResponseFactory::successMono);
     }
 
@@ -56,7 +56,7 @@ public class InterviewController {
     @Operation(summary = "인터뷰 세션의 모든 채팅 기록 조회(토큰 필요)", description = "토큰을 포함해야 하며, 인터뷰 세션(방) 내부의 메시지 정보를 조회합니다.")
     public Mono<ApiResponse<List<InterviewMessage>>> retrieveMessage(@Parameter(description = "세션 고유 ID") @PathVariable Long sessionId,
                                                                      @RequestAttribute("userId") Long memberId) {
-        return applicationService.retrieveMessage(sessionId, memberId)
+        return applicationService.retrieveMessages(sessionId, memberId)
                 .flatMap(ResponseFactory::successMono);
     }
 
