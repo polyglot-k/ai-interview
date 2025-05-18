@@ -1,4 +1,4 @@
-package com.example.aiinterview.module.interview.infrastructure.repository;
+package com.example.aiinterview.module.interview.domain.repository;
 
 import com.example.aiinterview.module.interview.domain.entity.InterviewSession;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
