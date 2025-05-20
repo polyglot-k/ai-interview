@@ -78,7 +78,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
     testImplementation 'io.projectreactor:reactor-test'
-
+    implementation "io.r2dbc:r2dbc-pool"
     //actuator
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.micrometer:micrometer-registry-prometheus'
