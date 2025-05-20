@@ -12,6 +12,7 @@ import com.example.aiinterview.module.auth.infrastructure.AuthTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @Service
 @RequiredArgsConstructor
@@ -21,20 +22,25 @@ public class AuthService {
 
     public Mono<LoginResponse> authenticate(LoginRequest request) {
         return memberRetrievalPort.findByEmail(request.email())
-                .flatMap(member -> {
-                    if (!CryptUtils.matches(request.password(),member.getPassword())) {
-                        return Mono.error(InvalidPasswordException::new);
-                    }
+                .flatMap(member ->
+                        Mono.fromCallable(() -> CryptUtils.matches(request.password(), member.getPassword()))
+                                .subscribeOn(Schedulers.boundedElastic()) // 🔥 BCrypt는 별도 스레드에서 실행
+                                .flatMap(passwordMatches -> {
+                                    if (!passwordMatches) {
+                                        return Mono.error(new InvalidPasswordException());
+                                    }
 
-                    AuthorizationPayload payload = new AuthorizationPayload(
-                            member.getId(),
-                            member.getName(),
-                            member.getEmail()
-                    );
-                    AccessToken accessToken = tokenProvider.generateAccessToken(payload);
-                    RefreshToken refreshToken = tokenProvider.generateRefreshToken(payload);
+                                    AuthorizationPayload payload = new AuthorizationPayload(
+                                            member.getId(),
+                                            member.getName(),
+                                            member.getEmail()
+                                    );
 
-                    return Mono.just(new LoginResponse(accessToken, refreshToken));
-                });
+                                    AccessToken accessToken = tokenProvider.generateAccessToken(payload);
+                                    RefreshToken refreshToken = tokenProvider.generateRefreshToken(payload);
+
+                                    return Mono.just(new LoginResponse(accessToken, refreshToken));
+                                })
+                );
     }
 }
