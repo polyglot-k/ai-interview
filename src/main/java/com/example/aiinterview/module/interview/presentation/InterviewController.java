@@ -47,7 +47,7 @@ public class InterviewController {
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "인터뷰 세션을 종료", description = "토큰을 포함해야하며, 인터뷰 세션을 종료합니다.")
     public Mono<ApiResponse<Void>> completeSession(@PathVariable("sessionId") Long sessionId){
-        return applicationService.completeInterview(sessionId)
+        return applicationService.completeAndAnalyze(sessionId)
                 .then(ResponseFactory.successVoid());
     }
 
