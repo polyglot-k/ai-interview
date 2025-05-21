@@ -18,6 +18,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class InterviewApplicationService {
 
+    private static final int MAX_MESSAGE_COUNT = 20;
+
     private final InterviewSessionService sessionService;
     private final InterviewSessionAuthorizationService sessionAuthorizationService;
     private final InterviewMessageService messageService;
@@ -25,59 +27,67 @@ public class InterviewApplicationService {
     private final InterviewAnalysisService analysisService;
 
     @Transactional
-    public Mono<InterviewSession> createRoom(Long memberId) {
-        return sessionService.create(memberId);
+    public Mono<InterviewSession> createRoom(Long userId) {
+        return sessionService.create(userId);
     }
 
     @Transactional(readOnly = true)
-    public Mono<List<InterviewSession>> retrieveInterviewSessions(Long memberId) {
-        return sessionService.findByMemberId(memberId);
+    public Mono<List<InterviewSession>> retrieveInterviewSessions(Long userId) {
+        return sessionService.findByMemberId(userId);
     }
 
     @Transactional(readOnly = true)
-    public Mono<List<InterviewMessage>> retrieveMessages(Long sessionId, Long memberId) {
-        return validateSessionAndAuthorization(sessionId, memberId)
+    public Mono<List<InterviewMessage>> retrieveMessages(Long sessionId, Long userId) {
+        return validateOwnedSessionByUserId(sessionId, userId)
                 .flatMap(session -> messageService.retrieveMessage(sessionId));
     }
 
     @Transactional
-    public Flux<SseResponse> processMessageAndStreamingLLM(Long sessionId, Long memberId, String message) {
-        return validateSessionAndAuthorization(sessionId, memberId)
-                .flatMapMany(session ->
-                        messageService.saveMessage(sessionId, message, InterviewSender.USER)
-                                .then(messageService.retrieveCount(sessionId)) // 🔹 저장 후 카운트 확인
-                                .flatMapMany(count -> {
-                                    if (count >= 20) {
-                                            return sessionService.complete(sessionId)
-                                                    .thenReturn(SseResponse.terminated())
-                                                    .flux();
-                                    } else {
-                                        return llmInterviewStreamingService
-                                                .startInterviewStreaming(sessionId, LLMPromptType.BACKEND, message)
-                                                .map(SseResponse::progress);
-                                    }
-                                })
+    public Flux<SseResponse> processMessageAndStreamingLLM(Long sessionId, Long userId, String message) {
+        return validateAccessSession(sessionId, userId)
+                .flatMapMany(session -> messageService.saveMessage(sessionId, message, InterviewSender.USER)
+                        .then(messageService.retrieveCount(sessionId))
+                        .flatMapMany(count -> handleLLMStreamingOrSessionCompletion(sessionId, message, count))
                 );
     }
 
-
-    public Mono<Void> analyze(Long sessionId) {
-        return Mono.empty(); // analysisService.analyze(sessionId).then();
-    }
-
-    public Mono<Void> completeInterview(Long sessionId) {
+    @Transactional
+    public Mono<Void> completeAndAnalyze(Long sessionId) {
         return messageService.deleteLastMessage(sessionId) //스트리밍 정보 제거
                 .then(sessionService.complete(sessionId))
-                .then(analyze(sessionId));
+                .then(messageService.retrieveMessage(sessionId))
+                .flatMap(messages ->  analysisService.analyze(sessionId, Flux.fromIterable(messages)));
+    }
+
+    @Transactional
+    public Mono<Void> analyze(Long sessionId) {
+        return messageService.retrieveMessage(sessionId)
+                .flatMap(messages -> analysisService.analyze(sessionId, Flux.fromIterable(messages)));
     }
 
     public Mono<String> retrieveMessageBuffer(Long sessionId) {
         return llmInterviewStreamingService.retrieveMessageBuffer(sessionId);
     }
 
-    private Mono<InterviewSession> validateSessionAndAuthorization(Long sessionId, Long memberId) {
+    private Mono<InterviewSession> validateAccessSession(Long sessionId, Long userId) {
         return sessionService.findById(sessionId)
-                .flatMap(session -> sessionAuthorizationService.validateSessionAccess(session, memberId)
+                .flatMap(session -> sessionAuthorizationService.validateAccess(session, userId)
                         .thenReturn(session));
+    }
+
+    private Mono<InterviewSession> validateOwnedSessionByUserId(Long sessionId, Long userId) {
+        return sessionService.findById(sessionId)
+                .flatMap(session -> sessionAuthorizationService.assertUserIsOwner(session, userId)
+                        .thenReturn(session));
+    }
+    private Flux<SseResponse> handleLLMStreamingOrSessionCompletion(Long sessionId, String message, long currentMessageCount) {
+        if (currentMessageCount >= MAX_MESSAGE_COUNT) {
+            return sessionService.complete(sessionId)
+                    .thenReturn(SseResponse.terminated())
+                    .flux();
+        }
+        return llmInterviewStreamingService
+                .startInterviewStreaming(sessionId, LLMPromptType.BACKEND, message)
+                .map(SseResponse::progress);
     }
 }
