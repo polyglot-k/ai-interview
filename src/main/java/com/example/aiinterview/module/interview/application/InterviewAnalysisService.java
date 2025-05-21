@@ -43,7 +43,6 @@ public class InterviewAnalysisService {
 
                     return resultSummaryRepository.save(summary)
                             .thenMany(detailFeedbackRepository.saveAll(feedbackList))
-                            // 추후 BULK INSERT 로 수정
                             .then(); // 최종 흐름 종료
                 })
                 .doOnSuccess(unused -> log.info("Session {} 분석 및 저장 완료", sessionId))
