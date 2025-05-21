@@ -9,13 +9,22 @@ import reactor.core.publisher.Mono;
 
 @Service
 public class InterviewSessionAuthorizationService {
-    public Mono<Void> validateSessionAccess(InterviewSession session, Long memberId) {
-        //streaming 이면 안되게
-        if (!session.getIntervieweeId().equals(memberId)) {
-            return Mono.error(InterviewAccessDeniedException::new);
+
+    public Mono<Void> validateAccess(InterviewSession session, Long userId) {
+        return assertUserIsOwner(session, userId)
+                .then(assertSessionNotEnded(session));
+    }
+
+    public Mono<Void> assertUserIsOwner(InterviewSession session, Long userId) {
+        if (!session.getIntervieweeId().equals(userId)) {
+            return Mono.error(new InterviewAccessDeniedException());
         }
+        return Mono.empty();
+    }
+
+    public Mono<Void> assertSessionNotEnded(InterviewSession session) {
         if (InterviewSessionStatus.ENDED.equals(session.getStatus())) {
-            return Mono.error(InterviewAlreadyEndedException::new);
+            return Mono.error(new InterviewAlreadyEndedException());
         }
         return Mono.empty();
     }
