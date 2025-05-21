@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
 public class InterviewDetailFeedback {
     @Id
     @Column("id")
@@ -43,4 +44,23 @@ public class InterviewDetailFeedback {
                 .userMessageId(evaluation.userMessageId())
                 .build();
     }
+    public static InterviewDetailFeedback of(String feedback, double score, LocalDateTime createdAt, Long llmMessageId, Long userMessageId) {
+        return InterviewDetailFeedback.builder()
+                .feedback(feedback)
+                .score(score)
+                .createdAt(createdAt)
+                .llmMessageId(llmMessageId)
+                .userMessageId(userMessageId)
+                .build();
+    }public static InterviewDetailFeedback of(Long id, String feedback, double score, LocalDateTime createdAt, Long llmMessageId, Long userMessageId) {
+        return InterviewDetailFeedback.builder()
+                .id(id)
+                .feedback(feedback)
+                .score(score)
+                .createdAt(createdAt)
+                .llmMessageId(llmMessageId)
+                .userMessageId(userMessageId)
+                .build();
+    }
+
 }
