@@ -1,6 +1,6 @@
 package com.example.aiinterview.module.interview.application;
 
-import com.example.aiinterview.module.interview.domain.entity.InterviewSender;
+import com.example.aiinterview.module.interview.domain.vo.InterviewSender;
 import com.example.aiinterview.module.interview.exception.StreamingAlreadyInProgressException;
 import com.example.aiinterview.module.interview.infrastructure.MessageBufferRegistry;
 import com.example.aiinterview.module.interview.infrastructure.SessionStreamingStatusRegistry;
