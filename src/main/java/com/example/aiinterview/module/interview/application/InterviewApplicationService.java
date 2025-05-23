@@ -1,8 +1,9 @@
 package com.example.aiinterview.module.interview.application;
 
+import com.example.aiinterview.module.interview.application.dto.InterviewMessageWithStatusResponse;
 import com.example.aiinterview.module.interview.application.dto.SseResponse;
-import com.example.aiinterview.module.interview.domain.entity.InterviewMessage;
-import com.example.aiinterview.module.interview.domain.entity.InterviewSender;
+import com.example.aiinterview.module.interview.domain.vo.InterviewMessageWithStatus;
+import com.example.aiinterview.module.interview.domain.vo.InterviewSender;
 import com.example.aiinterview.module.interview.domain.entity.InterviewSession;
 import com.example.aiinterview.module.interview.domain.service.InterviewSessionAuthorizationService;
 import com.example.aiinterview.module.llm.interviewer.prompt.LLMPromptType;
@@ -37,9 +38,9 @@ public class InterviewApplicationService {
     }
 
     @Transactional(readOnly = true)
-    public Mono<List<InterviewMessage>> retrieveMessages(Long sessionId, Long userId) {
+    public Mono<InterviewMessageWithStatus> retrieveMessages(Long sessionId, Long userId) {
         return validateOwnedSessionByUserId(sessionId, userId)
-                .flatMap(session -> messageService.retrieveMessage(sessionId));
+                .flatMap(session -> messageService.retrieveMessageWithStatus(sessionId));
     }
 
     @Transactional
