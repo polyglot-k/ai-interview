@@ -3,6 +3,7 @@ package com.example.aiinterview.global.exception;
 import com.example.aiinterview.global.common.response.dto.ApiResponse;
 import com.example.aiinterview.global.common.response.dto.ErrorResponse;
 import com.example.aiinterview.global.common.utils.JsonUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
@@ -12,6 +13,7 @@ import org.springframework.web.server.WebExceptionHandler;
 import reactor.core.publisher.Mono;
 
 @Component
+@Slf4j
 @Order(-2)
 public class GlobalWebFluxExceptionHandler implements WebExceptionHandler {
 
@@ -25,6 +27,7 @@ public class GlobalWebFluxExceptionHandler implements WebExceptionHandler {
         ErrorCode errorCode;
         String message;
 
+        log.info("error : {} ",ex.getMessage());
         if (ex instanceof BusinessException businessEx) {
             errorCode = businessEx.getErrorCode();
             message = ex.getMessage();
