@@ -1,9 +1,11 @@
 package com.example.aiinterview.module.interview.application;
 
 import com.example.aiinterview.module.interview.domain.entity.InterviewMessage;
-import com.example.aiinterview.module.interview.domain.entity.InterviewSender;
-import com.example.aiinterview.module.interview.exception.InterviewSessionNotFoundException;
+import com.example.aiinterview.module.interview.domain.repository.InterviewMessageCompositeRepositoryCustom;
 import com.example.aiinterview.module.interview.domain.repository.InterviewMessageRepository;
+import com.example.aiinterview.module.interview.domain.vo.InterviewMessageWithStatus;
+import com.example.aiinterview.module.interview.domain.vo.InterviewSender;
+import com.example.aiinterview.module.interview.exception.InterviewSessionNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -26,14 +28,18 @@ public class InterviewMessageService {
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
+    public Mono<InterviewMessageWithStatus> retrieveMessageWithStatus(Long sessionId) {
+        return messageRepository.retrieveMessageWithStatusBySessionId(sessionId)
+                .switchIfEmpty(Mono.error(InterviewSessionNotFoundException::new));
+    }
     public Mono<List<InterviewMessage>> retrieveMessage(Long sessionId) {
         return messageRepository.findBySessionId(sessionId)
-                .collectList()
-                .switchIfEmpty(Mono.error(InterviewSessionNotFoundException::new));
+                .switchIfEmpty(Mono.error(InterviewSessionNotFoundException::new))
+                .collectList();
     }
 
     public Mono<Long> retrieveCount(Long sessionId) {
-        return messageRepository.countBySessionIdAndSender(sessionId, "USER");
+        return messageRepository.countBySessionIdAndSender(sessionId, InterviewSender.USER);
     }
 
     public Mono<Void> deleteLastMessage(Long sessionId) {
