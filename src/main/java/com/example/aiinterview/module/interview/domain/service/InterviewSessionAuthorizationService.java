@@ -1,7 +1,7 @@
 package com.example.aiinterview.module.interview.domain.service;
 
 import com.example.aiinterview.module.interview.domain.entity.InterviewSession;
-import com.example.aiinterview.module.interview.domain.entity.InterviewSessionStatus;
+import com.example.aiinterview.module.interview.domain.vo.InterviewSessionStatus;
 import com.example.aiinterview.module.interview.exception.InterviewAccessDeniedException;
 import com.example.aiinterview.module.interview.exception.InterviewAlreadyEndedException;
 import org.springframework.stereotype.Service;
