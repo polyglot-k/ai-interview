@@ -1,5 +1,6 @@
 package com.example.aiinterview.module.interview.infrastructure.repository;
 
+import com.example.aiinterview.global.common.utils.Snowflake;
 import com.example.aiinterview.module.interview.domain.entity.InterviewDetailFeedback;
 import com.example.aiinterview.module.interview.domain.repository.ReactiveBatchInsertRepository;
 import io.r2dbc.spi.Result;
@@ -10,6 +11,7 @@ import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,15 +21,15 @@ import java.util.List;
 public class InterviewDetailFeedbackBatchRepositoryImpl implements ReactiveBatchInsertRepository<InterviewDetailFeedback, Long> {
 
     private final DatabaseClient databaseClient;
-
+    private final Snowflake snowflake;
     @Override
     public Flux<InterviewDetailFeedback> batchInsert(List<InterviewDetailFeedback> entities) {
         if (entities == null || entities.isEmpty()) {
             return Flux.empty();
         }
 
-        String sql = "INSERT INTO interview_detail_feedback (feedback_text, score, created_at, llm_id, user_id) VALUES (?, ?, ?, ?, ?)";
-
+        String sql = "INSERT INTO interview_detail_feedback (id, feedback_text, score, created_at, llm_id, user_id) VALUES (?, ?, ?, ?, ?, ?)";
+        entities.forEach(entity -> setIdUsingReflection(entity, snowflake.nextId()));
         return databaseClient.inConnectionMany(connection -> {
             Statement statement = connection.createStatement(sql);
             log.info("entities size : {}", entities.size());
@@ -40,37 +42,25 @@ public class InterviewDetailFeedbackBatchRepositoryImpl implements ReactiveBatch
                 }
             }
 
-            return Flux.from(statement.execute())
-                    .flatMap(result -> result.map((row, metadata) -> {
-                        // 각 삽입된 행에 대해 데이터베이스에서 생성된 ID를 가져옵니다.
-                        // row.toString() 및 metadata.toString()은 디버깅에 유용하나,
-                        // 실제 운영 코드에서는 불필요할 수 있습니다.
-                        // log.info(row.toString());
-                        // log.info(metadata.toString());
-                        return row.get("id", Long.class); // 생성된 ID만 추출
-                    }))
-                    .zipWith(Flux.fromIterable(entities), (generatedId, originalEntity) -> {
-                        // 원본 엔티티의 데이터를 사용하여 새로운 InterviewDetailFeedback 인스턴스를 생성하고,
-                        // 여기에 새로 생성된 ID를 부여합니다.
-                        // InterviewDetailFeedback.of() 메서드가 ID를 포함한 모든 필드를 인자로 받는다고 가정합니다.
-                        return InterviewDetailFeedback.of(
-                                generatedId, // 데이터베이스에서 생성된 ID
-                                originalEntity.getFeedback(),
-                                originalEntity.getScore(),
-                                originalEntity.getCreatedAt(),
-                                originalEntity.getLlmMessageId(),
-                                originalEntity.getUserMessageId()
-                        );
-                    });
+            return Flux.from(statement.execute()).thenMany(Flux.fromIterable(entities));
         });
     }
-
+    private void setIdUsingReflection(InterviewDetailFeedback entity, Long id) {
+        try {
+            Field idField = InterviewDetailFeedback.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(entity, id);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException("Failed to set ID via reflection", e);
+        }
+    }
     private void bindStatement(Statement statement, InterviewDetailFeedback entity) {
-        bindNullable(statement, 0, entity.getFeedback(), String.class);
-        bindNullable(statement, 1, entity.getScore(), Double.class);
-        bindNullable(statement, 2, entity.getCreatedAt(), LocalDateTime.class);
-        bindNullable(statement, 3, entity.getLlmMessageId(), Long.class);
-        bindNullable(statement, 4, entity.getUserMessageId(), Long.class);
+        bindNullable(statement, 0, entity.getId(), Long.class);
+        bindNullable(statement, 1, entity.getFeedback(), String.class);
+        bindNullable(statement, 2, entity.getScore(), Double.class);
+        bindNullable(statement, 3, entity.getCreatedAt(), LocalDateTime.class);
+        bindNullable(statement, 4, entity.getLlmMessageId(), Long.class);
+        bindNullable(statement, 5, entity.getUserMessageId(), Long.class);
     }
 
     private <T> void bindNullable(Statement statement, int index, T value, Class<T> type) {
