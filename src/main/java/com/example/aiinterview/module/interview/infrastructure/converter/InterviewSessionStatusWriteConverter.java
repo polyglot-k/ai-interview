@@ -1,6 +1,6 @@
 package com.example.aiinterview.module.interview.infrastructure.converter;
 
-import com.example.aiinterview.module.interview.domain.entity.InterviewSessionStatus;
+import com.example.aiinterview.module.interview.domain.vo.InterviewSessionStatus;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.WritingConverter;
 
