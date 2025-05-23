@@ -1,5 +1,6 @@
 package com.example.aiinterview.module.interview.domain.entity;
 
+import com.example.aiinterview.module.interview.domain.vo.InterviewSessionStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -28,6 +29,7 @@ public class InterviewSession {
 
     @Column("ended_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Builder.Default
     private LocalDateTime endedAt = null;
 
     @Column("u_id")
