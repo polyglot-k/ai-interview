@@ -1,5 +1,6 @@
 package com.example.aiinterview.module.interview.domain.entity;
 
+import com.example.aiinterview.module.interview.domain.vo.InterviewSender;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 @Table("interview_message")  // R2DBC 테이블 이름 지정
 @Getter
 @Builder
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor()
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class InterviewMessage {
 
@@ -54,11 +55,15 @@ public class InterviewMessage {
         return "[ id : " + this.getId() + "]" + this.getSender() + ": " + this.getMessage();
 
     }
+
     @Override
     public String toString() {
         return "InterviewMessage{" +
-                "sender=" + sender +
+                "id=" + id +
+                ", sender=" + sender +
                 ", message='" + message + '\'' +
+                ", createdAt=" + createdAt +
+                ", sessionId=" + sessionId +
                 '}';
     }
 }
