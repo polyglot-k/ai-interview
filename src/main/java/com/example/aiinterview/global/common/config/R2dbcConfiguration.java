@@ -6,7 +6,6 @@ import com.example.aiinterview.module.interview.infrastructure.converter.Intervi
 import com.example.aiinterview.module.interview.infrastructure.converter.InterviewSessionStatusWriteConverter;
 import io.r2dbc.pool.ConnectionPool;
 import io.r2dbc.pool.ConnectionPoolConfiguration;
-import io.r2dbc.proxy.ProxyConnectionFactory;
 import io.r2dbc.spi.ConnectionFactories;
 import io.r2dbc.spi.ConnectionFactory;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +22,7 @@ import org.springframework.data.r2dbc.dialect.H2Dialect;
 import org.springframework.data.r2dbc.dialect.R2dbcDialect;
 import org.springframework.r2dbc.connection.R2dbcTransactionManager;
 import org.springframework.transaction.ReactiveTransactionManager;
+import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.util.Arrays;
@@ -83,7 +83,10 @@ public class R2dbcConfiguration {
     }
 
     @Bean
-    public ReactiveTransactionManager transactionManager(ConnectionFactory connectionFactory){
+    @Primary
+    public TransactionManager transactionManager(
+            ConnectionFactory connectionFactory){
+        log.info("Transaction Manager 등록");
         return new R2dbcTransactionManager(connectionFactory);
     }
 
@@ -98,5 +101,4 @@ public class R2dbcConfiguration {
             }
         };
     }
-
 }
