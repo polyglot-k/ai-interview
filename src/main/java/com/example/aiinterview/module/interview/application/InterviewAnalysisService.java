@@ -23,6 +23,7 @@ public class InterviewAnalysisService {
     private final InterviewAnalyzer analyzer;
     private final InterviewResultSummaryRepository resultSummaryRepository;
     private final InterviewDetailFeedbackRepository detailFeedbackRepository;
+
     public Mono<Void> analyze(Long sessionId, Flux<InterviewMessage> messages) {
         return messages
                 .skip(1)
