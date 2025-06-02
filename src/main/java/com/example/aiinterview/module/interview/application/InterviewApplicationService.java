@@ -3,12 +3,15 @@ package com.example.aiinterview.module.interview.application;
 import com.example.aiinterview.module.interview.application.dto.InterviewAnalysisPayload;
 import com.example.aiinterview.module.interview.application.dto.InterviewMessageWithStatusResponse;
 import com.example.aiinterview.module.interview.application.dto.SseResponse;
+import com.example.aiinterview.module.interview.application.dto.StreamRequest;
 import com.example.aiinterview.module.interview.domain.vo.InterviewMessageWithStatus;
 import com.example.aiinterview.module.interview.domain.vo.InterviewSender;
 import com.example.aiinterview.module.interview.domain.entity.InterviewSession;
 import com.example.aiinterview.module.interview.domain.service.InterviewSessionAuthorizationService;
+import com.example.aiinterview.module.interview.exception.InterviewSessionNotFoundException;
 import com.example.aiinterview.module.llm.interviewer.prompt.LLMPromptType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -20,6 +23,7 @@ import reactor.core.scheduler.Schedulers;
 import java.util.List;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class InterviewApplicationService {
 
@@ -34,34 +38,48 @@ public class InterviewApplicationService {
 
     @Transactional
     public Mono<InterviewSession> createRoom(Long userId) {
-        return sessionService.create(userId);
+        return sessionService.create(userId)
+                .publishOn(Schedulers.boundedElastic())
+                .flatMap(session ->
+                        messageService.saveQuestionByLLM(session.getId(), "안녕하세요! 인터뷰를 시작하기 위해 자기 소개 및 자신이 지원한 직렬, 경력을 말씀해주세요.")
+                                .thenReturn(session)
+                );
     }
 
     public Mono<List<InterviewSession>> retrieveInterviewSessions(Long userId) {
         return sessionService.findByMemberId(userId);
     }
 
-    public Mono<InterviewMessageWithStatus> retrieveMessages(Long sessionId, Long userId) {
+    public Mono<InterviewMessageWithStatusResponse> retrieveMessages(Long sessionId, Long userId) {
         return validateOwnedSessionByUserId(sessionId, userId)
                 .flatMap(session -> messageService.retrieveMessageWithStatus(sessionId));
     }
 
-    public Flux<SseResponse> processMessageAndStreamingLLM(Long sessionId, Long userId, String message) {
+    /**
+     * 메시지 처리기
+     * @param sessionId
+     * @param userId
+     * @param message
+     * @return
+     */
+    public Flux<SseResponse> saveUserMessageAndStreamingLLM(Long sessionId, Long userId, String message) {
         return validateAccessSession(sessionId, userId)
-                .flatMapMany(session -> messageService.saveMessage(sessionId, message, InterviewSender.USER)
-                        .then(messageService.retrieveCount(sessionId))
-                        .flatMapMany(count -> handleLLMStreamingOrSessionCompletion(sessionId, message, count))
+                .flatMapMany(session ->
+                    messageService.saveAnswerByUser(sessionId,message)
+                            .then(messageService.retrieveCount(sessionId))
+                            .flatMapMany(count -> handleLLMStreamingOrSessionCompletion(sessionId, message, count))
                 );
     }
 
     public Mono<Void> completeAndAnalyze(Long sessionId) {
-        return messageService.deleteLastMessage(sessionId)
-                .then(sessionService.complete(sessionId))
-                .then(sendMessageReactive(InterviewAnalysisPayload.of(sessionId)));
+        return sessionService.complete(sessionId)
+                .then(messageService.retrieveMessage(sessionId))
+                .flatMap(messages ->  analysisService.analyze(sessionId, Flux.fromIterable(messages)));
     }
 
     public Mono<Void> analyze(Long sessionId) {
-        return sendMessageReactive(InterviewAnalysisPayload.of(sessionId));
+        return messageService.retrieveMessage(sessionId)
+                .flatMap(messages -> analysisService.analyze(sessionId, Flux.fromIterable(messages)));
     }
 
 
