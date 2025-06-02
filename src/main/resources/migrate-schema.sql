@@ -66,38 +66,29 @@ CREATE TABLE IF NOT EXISTS interview_recap_feedback (
 );
 
 CREATE TABLE IF NOT EXISTS interview_message (
-    id bigint primary key auto_increment,
-    content text,
-    created_at datetime,
-    sender varchar(10), -- USER or LLM
-    i_id bigint,
-    irp_id bigint,
-    foreign key (i_id) references interview_session(id)
-       on delete cascade
-       on update cascade,
-    foreign key (irp_id) references interview_recap_problem(id)
-       on delete cascade
-       on update cascade
+     id bigint primary key auto_increment,
+     user_content text,
+     llm_content text,
+     user_created_at datetime,
+     llm_created_at datetime,
+     i_id bigint,
+     foreign key (i_id) references interview_session(id)
+         on delete cascade
+         on update cascade
 );
-
 CREATE TABLE IF NOT EXISTS interview_detail_feedback (
-    id bigint primary key auto_increment,
-    feedback_text text,
-    score double,
-    created_at datetime,
-    llm_id bigint,
-    user_id bigint,
-    foreign key (llm_id) references interview_message(id)
-    on delete cascade
-    on update cascade,
-    foreign key (user_id) references interview_message(id)
-    on delete cascade
-    on update cascade
+     id bigint primary key auto_increment,
+     feedback_text text,
+     score double,
+     created_at datetime,
+     m_id bigint,
+     foreign key (m_id) references interview_message(id)
+         on delete cascade
+         on update cascade
 );
 CREATE TABLE  IF NOT EXISTS chat_memory (
 
-                                            memory_id varchar(255) PRIMARY KEY,
-
-                                            messages_json TEXT
+    memory_id varchar(255) PRIMARY KEY,
+    messages_json TEXT
 
 );
