@@ -1,9 +1,8 @@
 package com.example.aiinterview.module.interview.infrastructure.repository;
 
+import com.example.aiinterview.module.interview.domain.entity.InterviewMessage;
 import com.example.aiinterview.module.interview.domain.repository.InterviewMessageCompositeRepositoryCustom;
 import com.example.aiinterview.module.interview.domain.vo.InterviewMessageWithStatus;
-import com.example.aiinterview.module.interview.domain.entity.InterviewMessage;
-import com.example.aiinterview.module.interview.domain.vo.InterviewSender;
 import com.example.aiinterview.module.interview.domain.vo.InterviewSessionStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.r2dbc.core.DatabaseClient;
@@ -31,12 +30,13 @@ public class InterviewMessageRepositoryImpl implements InterviewMessageComposite
                 .bind("sessionId",sessionId)
                 .map((row, metadata)->{
                     Long id = assertNotNull(row.get("id", Long.class), "id");
-                    InterviewSender sender = InterviewSender.valueOf(assertNotNull(row.get("sender", String.class), "sender"));
-                    String content = assertNotNull(row.get("content", String.class), "content");
-                    LocalDateTime createdAt = assertNotNull(row.get("created_at", LocalDateTime.class), "create_at");
+                    String userContent = row.get("user_content", String.class);
+                    String llmContent = assertNotNull(row.get("llm_content", String.class), "llm_content");
+                    LocalDateTime userCreatedAt = row.get("user_created_at", LocalDateTime.class);
+                    LocalDateTime llmCreatedAt = assertNotNull(row.get("llm_created_at", LocalDateTime.class), "llm_created_at");
                     InterviewSessionStatus status = InterviewSessionStatus.valueOf(assertNotNull(row.get("status", String.class), "status"));
 
-                    InterviewMessage message = createInterviewMessageUsingReflection(id, sender, content, createdAt);
+                    InterviewMessage message = createInterviewMessageUsingReflection(id, userContent, llmContent, userCreatedAt,llmCreatedAt);
 
                     return Tuples.of(message, status);
                 })
@@ -61,27 +61,31 @@ public class InterviewMessageRepositoryImpl implements InterviewMessageComposite
     }
 
     private InterviewMessage createInterviewMessageUsingReflection(Long id,
-                                                       InterviewSender sender,
-                                                       String content,
-                                                       LocalDateTime createdAt){
+                                                                   String userContent,
+                                                                   String llmContent,
+                                                                   LocalDateTime userCreatedAt,
+                                                                   LocalDateTime llmCreatedAt){
         try {
 
             InterviewMessage message = new InterviewMessage();
 
             Field idField = InterviewMessage.class.getDeclaredField("id");
-            Field senderField = InterviewMessage.class.getDeclaredField("sender");
-            Field contentField = InterviewMessage.class.getDeclaredField("message"); // 필드명이 "message"라고 가정
-            Field createdAtField = InterviewMessage.class.getDeclaredField("createdAt");
+            Field userContentField = InterviewMessage.class.getDeclaredField("userMessage");
+            Field llmContentField = InterviewMessage.class.getDeclaredField("llmMessage"); // 필드명이 "message"라고 가정
+            Field userCreatedAtField = InterviewMessage.class.getDeclaredField("userCreatedAt");
+            Field llmCreatedAtField = InterviewMessage.class.getDeclaredField("llmCreatedAt");
 
             idField.setAccessible(true);
-            senderField.setAccessible(true);
-            contentField.setAccessible(true);
-            createdAtField.setAccessible(true);
+            userContentField.setAccessible(true);
+            llmContentField.setAccessible(true);
+            userCreatedAtField.setAccessible(true);
+            llmCreatedAtField.setAccessible(true);
 
             idField.set(message, id);
-            senderField.set(message, sender);
-            contentField.set(message, content);
-            createdAtField.set(message, createdAt);
+            userContentField.set(message, userContent);
+            llmContentField.set(message, llmContent);
+            userCreatedAtField.set(message, userCreatedAt);
+            llmCreatedAtField.set(message, llmCreatedAt);
 
             return message;
         } catch (NoSuchFieldException|IllegalAccessException e) {
