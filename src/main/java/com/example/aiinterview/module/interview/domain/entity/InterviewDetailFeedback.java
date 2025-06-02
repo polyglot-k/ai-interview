@@ -30,36 +30,32 @@ public class InterviewDetailFeedback {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime createdAt;
 
-    @Column("llm_id")
-    private Long llmMessageId;
-    @Column("user_id")
-    private Long userMessageId;
+    @Column("m_id")
+    private Long messageId;
 
     public static InterviewDetailFeedback of(PartialEvaluation evaluation) {
         return InterviewDetailFeedback.builder()
                 .feedback(evaluation.feedback())
                 .score(evaluation.score())
                 .createdAt(LocalDateTime.now())
-                .llmMessageId(evaluation.llmMessageId())
-                .userMessageId(evaluation.userMessageId())
+                .messageId(evaluation.messageId())
                 .build();
     }
-    public static InterviewDetailFeedback of(String feedback, double score, LocalDateTime createdAt, Long llmMessageId, Long userMessageId) {
+    public static InterviewDetailFeedback of(String feedback, double score, LocalDateTime createdAt, Long messageId) {
         return InterviewDetailFeedback.builder()
                 .feedback(feedback)
                 .score(score)
                 .createdAt(createdAt)
-                .llmMessageId(llmMessageId)
-                .userMessageId(userMessageId)
+                .messageId(messageId)
                 .build();
-    }public static InterviewDetailFeedback of(Long id, String feedback, double score, LocalDateTime createdAt, Long llmMessageId, Long userMessageId) {
+    }
+    public static InterviewDetailFeedback of(Long id, String feedback, double score, LocalDateTime createdAt, Long messageId) {
         return InterviewDetailFeedback.builder()
                 .id(id)
                 .feedback(feedback)
                 .score(score)
                 .createdAt(createdAt)
-                .llmMessageId(llmMessageId)
-                .userMessageId(userMessageId)
+                .messageId(messageId)
                 .build();
     }
 
