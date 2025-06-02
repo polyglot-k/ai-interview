@@ -41,12 +41,12 @@ public class User {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime createdAt;
 
-   public User(String email, String name, String password, LocalDateTime createdAt) {
+    public User(String email, String name, String password, LocalDateTime createdAt) {
         this.email = email;
         this.name = name;
         this.password = password;
         this.createdAt = createdAt;
-   }
+    }
 
     public static User create(String email, String name, String password) {
         return new User(email, name, password, LocalDateTime.now());
