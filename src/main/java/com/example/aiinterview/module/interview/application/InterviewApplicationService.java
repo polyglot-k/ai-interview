@@ -1,20 +1,13 @@
 package com.example.aiinterview.module.interview.application;
 
-import com.example.aiinterview.module.interview.application.dto.InterviewAnalysisPayload;
 import com.example.aiinterview.module.interview.application.dto.InterviewMessageWithStatusResponse;
 import com.example.aiinterview.module.interview.application.dto.SseResponse;
-import com.example.aiinterview.module.interview.application.dto.StreamRequest;
-import com.example.aiinterview.module.interview.domain.vo.InterviewMessageWithStatus;
-import com.example.aiinterview.module.interview.domain.vo.InterviewSender;
 import com.example.aiinterview.module.interview.domain.entity.InterviewSession;
 import com.example.aiinterview.module.interview.domain.service.InterviewSessionAuthorizationService;
-import com.example.aiinterview.module.interview.exception.InterviewSessionNotFoundException;
 import com.example.aiinterview.module.llm.interviewer.prompt.LLMPromptType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -34,7 +27,6 @@ public class InterviewApplicationService {
     private final InterviewMessageService messageService;
     private final LLMInterviewStreamingService llmInterviewStreamingService;
     private final InterviewAnalysisService analysisService;
-    private final RabbitTemplate rabbitTemplate;
 
     @Transactional
     public Mono<InterviewSession> createRoom(Long userId) {
@@ -86,11 +78,11 @@ public class InterviewApplicationService {
     public Mono<String> retrieveMessageBuffer(Long sessionId) {
         return llmInterviewStreamingService.retrieveMessageBuffer(sessionId);
     }
-    private Mono<Void> sendMessageReactive(Object payload) {
-        return Mono.fromRunnable(() -> rabbitTemplate.convertAndSend("task.queue",payload))
-                .subscribeOn(Schedulers.boundedElastic()) // 블로킹 호출 방지
-                .then();
-    }
+//    private Mono<Void> sendMessageReactive(Object payload) {
+//        return Mono.fromRunnable(() -> rabbitTemplate.convertAndSend("task.queue",payload))
+//                .subscribeOn(Schedulers.boundedElastic()) // 블로킹 호출 방지
+//                .then();
+//    }
 
 
     private Mono<InterviewSession> validateAccessSession(Long sessionId, Long userId) {
