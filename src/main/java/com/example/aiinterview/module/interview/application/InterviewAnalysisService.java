@@ -26,7 +26,6 @@ public class InterviewAnalysisService {
 
     public Mono<Void> analyze(Long sessionId, Flux<InterviewMessage> messages) {
         return messages
-                .skip(1)
                 .collectList()
                 .flatMap(this::createPromptText)
                 .flatMap(prompt -> processAnalyze(sessionId, prompt))
