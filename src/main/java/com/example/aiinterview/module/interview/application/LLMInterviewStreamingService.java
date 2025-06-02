@@ -66,7 +66,7 @@ public class LLMInterviewStreamingService {
         return bufferRegistry.retrieveMessageBuffer(sessionId)
                 .flatMap(fullResponse -> {
                     log.info("💬 스트림 완료 - 전체 응답 저장 시도: {}", fullResponse);
-                    return messageService.saveMessage(sessionId, fullResponse, InterviewSender.LLM)
+                    return messageService.saveQuestionByLLM(sessionId, fullResponse)
                             .then(bufferRegistry.clearMessageBuffer(sessionId));
                 })
                 .then();
