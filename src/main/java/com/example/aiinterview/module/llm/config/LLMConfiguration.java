@@ -40,27 +40,26 @@ public class LLMConfiguration {
                 .build();
     }
     @Bean
-    ResponseFormat analysisResponseFormat(){
+    ResponseFormat analysisResponseFormat() {
         Map<String, JsonSchemaElement> properties = Map.of(
                 "evaluations", JsonArraySchema.builder()
                         .items(JsonObjectSchema.builder()
-                                .addNumberProperty("llmMessageId","LLM 응답 대한 id 값 표기해줘 ")
-                                .addNumberProperty("userMessageId","USER 응답 대한 id 값 표기해줘 ")
-                                .addNumberProperty("score","답변에 대한 점수를 적어줘 (100점 만점), 잘못된 부분이 존재하면 점수를 엄청 낮게 줘")
-                                .addStringProperty("feedback","해당 답변에 대한 피드백을 자세하게 한글로 해줘.(신입 면접 상황이야) 만약 피드백이 없다면, 칭찬해줘")
-                                .required("llmMessageId","userMessageId","score","feedback")
+                                .addNumberProperty("messageId", "표기된 messageId 값을 그대로 포함해주세요. (제시된 모든 messageId에 대한 분석이 필요하므로 모두 포함해야 합니다.)")
+                                .addNumberProperty("score", "LLM 질문에 대한 USER 답변 점수를 100점 만점으로 평가해주세요. 부족한 부분이 있다면 낮은 점수를 부여해주세요.")
+                                .addStringProperty("feedback", "해당 답변에 대한 상세 피드백을 신입 면접 상황을 고려하여 한국어로 작성해주세요. 긍정적인 답변이라면 칭찬해주세요.")
+                                .required("messageId", "score", "feedback")
                                 .build())
                         .build()
         );
         return ResponseFormat.builder()
-                .type(JSON) // type can be either TEXT (default) or JSON
+                .type(JSON)
                 .jsonSchema(JsonSchema.builder()
-                        .name("InterviewSessionResult") // OpenAI requires specifying the name for the schema
-                        .rootElement(JsonObjectSchema.builder() // see [1] below
+                        .name("InterviewSessionResult")
+                        .rootElement(JsonObjectSchema.builder()
                                 .addProperties(properties)
-                                .addNumberProperty("overallAverageScore","evaluations 의 score들을 기반으로 평균을 내줘")
-                                .addStringProperty("overallFeedback", "전체적인 피드백을 한글로 맵게 해줘(약점, 개선할 점, 잘한점)")
-                                .required("overallAverageScore", "overallFeedback", "evaluations") // see [2] below
+                                .addNumberProperty("overallAverageScore", "evaluations 내의 score 값들의 평균을 계산하여 알려주세요.")
+                                .addStringProperty("overallFeedback", "전반적인 답변에 대한 총평을 약점, 개선할 점, 잘한 점을 포함하여 한국어로 간결하고 명확하게 요약해주세요.")
+                                .required("overallAverageScore", "overallFeedback", "evaluations")
                                 .build())
                         .build())
                 .build();
