@@ -1,6 +1,5 @@
 package com.example.aiinterview.module.interview.domain.entity;
 
-import com.example.aiinterview.module.interview.domain.vo.InterviewSender;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -20,49 +19,43 @@ public class InterviewMessage {
     @Column("id")
     private Long id;
 
-    @Column("sender")
-    private InterviewSender sender;  // InterviewSender Enum의 String 값으로 처리
+    @Column("user_content")
+    private String userMessage;
 
-    @Column("content")
-    private String message;
+    @Column("llm_content")
+    private String llmMessage;
 
-    @Column("created_at")
+    @Column("user_created_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
-    private LocalDateTime createdAt;
+    private LocalDateTime userCreatedAt;
+
+    @Column("llm_created_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
+    private LocalDateTime llmCreatedAt;
 
 
     @Column("i_id")  // Foreign Key column 이름 지정
     private Long sessionId;  // InterviewRoom의 ID로 처리
 
-    public static InterviewMessage createByMember(Long sessionId, String message) {
-        return InterviewMessage.builder()
-                .sessionId(sessionId)
-                .message(message)
-                .sender(InterviewSender.USER)  // 기본값: USER
-                .createdAt(LocalDateTime.now())
-                .build();
-    }
 
     public static InterviewMessage createByLLM(Long sessionId, String message) {
         return InterviewMessage.builder()
                 .sessionId(sessionId)
-                .sender(InterviewSender.LLM)  // 기본값: LLM
-                .message(message)
-                .createdAt(LocalDateTime.now())
+                .llmMessage(message)
+                .llmCreatedAt(LocalDateTime.now())
                 .build();
     }
-    public String buildToPromptText(){
-        return "[ id : " + this.getId() + "]" + this.getSender() + ": " + this.getMessage();
-
+    public String buildToPromptText() {
+        return "<message>[ messageId : " + this.getId() + "] LLM : " + this.getLlmMessage() +", USER : " + this.getUserMessage()+"</message>";
     }
 
     @Override
     public String toString() {
-        return "InterviewMessage{" +
-                "id=" + id +
-                ", sender=" + sender +
-                ", message='" + message + '\'' +
-                ", createdAt=" + createdAt +
+        return "InterviewMessageV2{" +
+                "userMessage='" + userMessage + '\'' +
+                ", llmMessage='" + llmMessage + '\'' +
+                ", userCreatedAt=" + userCreatedAt +
+                ", llmCreatedAt=" + llmCreatedAt +
                 ", sessionId=" + sessionId +
                 '}';
     }
