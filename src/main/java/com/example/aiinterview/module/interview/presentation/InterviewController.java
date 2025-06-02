@@ -2,11 +2,11 @@ package com.example.aiinterview.module.interview.presentation;
 
 import com.example.aiinterview.global.common.response.ResponseFactory;
 import com.example.aiinterview.global.common.response.dto.ApiResponse;
-import com.example.aiinterview.global.sse.SseMapping;
 import com.example.aiinterview.module.interview.application.InterviewApplicationService;
+import com.example.aiinterview.module.interview.application.dto.InterviewMessageWithStatusResponse;
 import com.example.aiinterview.module.interview.application.dto.SseResponse;
+import com.example.aiinterview.module.interview.application.dto.StreamRequest;
 import com.example.aiinterview.module.interview.domain.entity.InterviewSession;
-import com.example.aiinterview.module.interview.domain.vo.InterviewMessageWithStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,7 +38,7 @@ public class InterviewController {
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "인터뷰 세션 생성(토큰 필요)", description = "토큰을 포함해야 하며, 인터뷰 세션(방) 을 생성합니다.")
-    public Mono<ApiResponse<InterviewSession>> createSession(@RequestAttribute("userId") Long memberId) {
+    public Mono<ApiResponse<InterviewSession>> createSessionAndStartStream(@RequestAttribute("userId") Long memberId) {
         return applicationService.createRoom(memberId)
                 .flatMap(ResponseFactory::successMono);
     }
@@ -54,18 +54,31 @@ public class InterviewController {
     @GetMapping("/{sessionId}/messages")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "인터뷰 세션의 모든 채팅 기록 조회(토큰 필요)", description = "토큰을 포함해야 하며, 인터뷰 세션(방) 내부의 메시지 정보를 조회합니다.")
-    public Mono<ApiResponse<InterviewMessageWithStatus>> retrieveMessage(@Parameter(description = "세션 고유 ID") @PathVariable Long sessionId,
-                                                                         @RequestAttribute("userId") Long memberId) {
+    public Mono<ApiResponse<InterviewMessageWithStatusResponse>> retrieveMessage(@Parameter(description = "세션 고유 ID") @PathVariable Long sessionId,
+                                                                                 @RequestAttribute("userId") Long memberId) {
         return applicationService.retrieveMessages(sessionId, memberId)
                 .flatMap(ResponseFactory::successMono);
     }
+//    @Deprecated
+//    @SseMapping("/{sessionId}/messages/stream")
+//    @Operation(summary = "AI 스트리밍 진행(토큰 필요)", description = "토큰이 쿼리 스트링으로 포함되어야함. (?token=value) 의 형식으로, 이를 통해서 실시간 스트리밍을 진행")
+//    public Flux<SseResponse> sendMessage(@Parameter(description = "세션 고유 ID") @PathVariable Long sessionId,
+//                                         @RequestAttribute("userId") Long userId,
+//                                         @Parameter(description = "메시지") @RequestParam("message") String message) {
+//        Flux<SseResponse> messageFlux = applicationService.saveUserMessageAndStreamingLLM(sessionId, userId, message).share();
+//        Flux<SseResponse> heartbeatFlux = generateHeartbeatPing().takeUntilOther(messageFlux);
+//        return Flux.merge(messageFlux, heartbeatFlux)
+//                .concatWith(Mono.just(SseResponse.complete()));
+//    }
 
-    @SseMapping("/{sessionId}/messages/stream")
+    @PostMapping(value = "/{sessionId}/messages/stream", produces = "text/event-stream")
     @Operation(summary = "AI 스트리밍 진행(토큰 필요)", description = "토큰이 쿼리 스트링으로 포함되어야함. (?token=value) 의 형식으로, 이를 통해서 실시간 스트리밍을 진행")
-    public Flux<SseResponse> sendMessage(@Parameter(description = "세션 고유 ID") @PathVariable Long sessionId,
-                                         @RequestAttribute("userId") Long userId,
-                                         @Parameter(description = "메시지") @RequestParam("message") String message) {
-        Flux<SseResponse> messageFlux = applicationService.processMessageAndStreamingLLM(sessionId, userId, message).share();
+    public Flux<SseResponse> saveLLMAndStreamQuestion(@Parameter(description = "세션 고유 ID") @PathVariable Long sessionId,
+                                                      @RequestAttribute("userId") Long userId,
+                                                      @Parameter(description = "stream에 필요한 요소") @RequestBody() StreamRequest request) {
+        Flux<SseResponse> messageFlux = applicationService.saveUserMessageAndStreamingLLM(sessionId, userId, request.getMessage())
+                .delayElements( Duration.ofMillis(1000))
+                .share();
         Flux<SseResponse> heartbeatFlux = generateHeartbeatPing().takeUntilOther(messageFlux);
         return Flux.merge(messageFlux, heartbeatFlux)
                 .concatWith(Mono.just(SseResponse.complete()));
