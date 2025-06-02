@@ -1,24 +1,21 @@
 package com.example.aiinterview;
 
-import com.example.aiinterview.module.interview.infrastructure.SessionStreamingStatusRegistry;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 
 import java.time.LocalDateTime;
 import java.util.TimeZone;
+
 @SpringBootApplication
-@EnableR2dbcRepositories
 @Slf4j
 @RequiredArgsConstructor
-public class InterviewWithAIApplication implements CommandLineRunner{
-    private final SessionStreamingStatusRegistry registry;
+public class InterviewWithAIApplication {
+
     @PostConstruct
-    public void initTimeZone(){
+    public void initTimeZone() {
         TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
         log.info("TimeZone Setting 성공 - [현재 시간] {}", LocalDateTime.now());
     }
@@ -27,11 +24,4 @@ public class InterviewWithAIApplication implements CommandLineRunner{
         SpringApplication.run(InterviewWithAIApplication.class, args);
     }
 
-    @Override
-    public void run(String... args) throws Exception {
-        // registry.setStreamStatus(1L, SessionStreamingStatusRegistry.StreamingStatus.TERMINATED).block();
-    }
 }
-
-
-
