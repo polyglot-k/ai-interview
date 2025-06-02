@@ -3,7 +3,6 @@ package com.example.aiinterview.module.interview.infrastructure.repository;
 import com.example.aiinterview.global.common.utils.Snowflake;
 import com.example.aiinterview.module.interview.domain.entity.InterviewDetailFeedback;
 import com.example.aiinterview.module.interview.domain.repository.ReactiveBatchInsertRepository;
-import io.r2dbc.spi.Result;
 import io.r2dbc.spi.Statement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,7 @@ public class InterviewDetailFeedbackBatchRepositoryImpl implements ReactiveBatch
             return Flux.empty();
         }
 
-        String sql = "INSERT INTO interview_detail_feedback (id, feedback_text, score, created_at, llm_id, user_id) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO interview_detail_feedback (id, feedback_text, score, created_at, m_id) VALUES (?, ?, ?, ?, ?)";
         entities.forEach(entity -> setIdUsingReflection(entity, snowflake.nextId()));
         return databaseClient.inConnectionMany(connection -> {
             Statement statement = connection.createStatement(sql);
@@ -59,8 +58,7 @@ public class InterviewDetailFeedbackBatchRepositoryImpl implements ReactiveBatch
         bindNullable(statement, 1, entity.getFeedback(), String.class);
         bindNullable(statement, 2, entity.getScore(), Double.class);
         bindNullable(statement, 3, entity.getCreatedAt(), LocalDateTime.class);
-        bindNullable(statement, 4, entity.getLlmMessageId(), Long.class);
-        bindNullable(statement, 5, entity.getUserMessageId(), Long.class);
+        bindNullable(statement, 4, entity.getMessageId(), Long.class);
     }
 
     private <T> void bindNullable(Statement statement, int index, T value, Class<T> type) {
