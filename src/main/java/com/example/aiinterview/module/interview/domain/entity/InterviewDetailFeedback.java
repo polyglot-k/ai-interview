@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@ToString
 public class InterviewDetailFeedback {
     @Id
     @Column("id")
@@ -23,8 +22,11 @@ public class InterviewDetailFeedback {
     @Column("feedback_text")
     private String feedback;
 
+    @Column("core_question")
+    private String coreQuestion;
+
     @Column("score")
-    private double score;
+    private Double score;
 
     @Column("created_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
@@ -36,6 +38,7 @@ public class InterviewDetailFeedback {
     public static InterviewDetailFeedback of(PartialEvaluation evaluation) {
         return InterviewDetailFeedback.builder()
                 .feedback(evaluation.feedback())
+                .coreQuestion(evaluation.coreQuestion())
                 .score(evaluation.score())
                 .createdAt(LocalDateTime.now())
                 .messageId(evaluation.messageId())
@@ -59,4 +62,15 @@ public class InterviewDetailFeedback {
                 .build();
     }
 
+    @Override
+    public String toString() {
+        return "InterviewDetailFeedback{" +
+               "id=" + id +
+               ", feedback='" + feedback + '\'' +
+               ", coreQuestion='" + coreQuestion + '\'' +
+               ", score=" + score +
+               ", createdAt=" + createdAt +
+               ", messageId=" + messageId +
+               '}';
+    }
 }
