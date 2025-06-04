@@ -34,7 +34,7 @@ public class InterviewAnalysisService {
                             .stream()
                             .map(InterviewDetailFeedback::of)
                             .toList();
-
+                    log.info("log: {}",feedbackList);
                     InterviewResultSummary summary = InterviewResultSummary.of(
                             sessionId,
                             interviewSessionResult.overallFeedback(),
