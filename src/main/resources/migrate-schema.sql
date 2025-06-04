@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS interview_message (
 );
 CREATE TABLE IF NOT EXISTS interview_detail_feedback (
      id bigint primary key auto_increment,
+     core_question varchar(50),
      feedback_text text,
      score double,
      created_at datetime,
