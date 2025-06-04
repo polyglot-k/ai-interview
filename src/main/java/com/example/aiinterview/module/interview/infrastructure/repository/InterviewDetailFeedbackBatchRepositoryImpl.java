@@ -27,7 +27,7 @@ public class InterviewDetailFeedbackBatchRepositoryImpl implements ReactiveBatch
             return Flux.empty();
         }
 
-        String sql = "INSERT INTO interview_detail_feedback (id, feedback_text, score, created_at, m_id) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO interview_detail_feedback (id, feedback_text, core_question, score, created_at, m_id) VALUES (?, ?, ?, ?, ?, ?)";
         entities.forEach(entity -> setIdUsingReflection(entity, snowflake.nextId()));
         return databaseClient.inConnectionMany(connection -> {
             Statement statement = connection.createStatement(sql);
@@ -56,9 +56,10 @@ public class InterviewDetailFeedbackBatchRepositoryImpl implements ReactiveBatch
     private void bindStatement(Statement statement, InterviewDetailFeedback entity) {
         bindNullable(statement, 0, entity.getId(), Long.class);
         bindNullable(statement, 1, entity.getFeedback(), String.class);
-        bindNullable(statement, 2, entity.getScore(), Double.class);
-        bindNullable(statement, 3, entity.getCreatedAt(), LocalDateTime.class);
-        bindNullable(statement, 4, entity.getMessageId(), Long.class);
+        bindNullable(statement, 2, entity.getCoreQuestion(), String.class);
+        bindNullable(statement, 3, entity.getScore(), Double.class);
+        bindNullable(statement, 4, entity.getCreatedAt(), LocalDateTime.class);
+        bindNullable(statement, 5, entity.getMessageId(), Long.class);
     }
 
     private <T> void bindNullable(Statement statement, int index, T value, Class<T> type) {
