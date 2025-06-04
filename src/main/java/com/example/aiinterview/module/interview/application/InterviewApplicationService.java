@@ -1,9 +1,10 @@
 package com.example.aiinterview.module.interview.application;
 
-import com.example.aiinterview.module.interview.application.dto.InterviewMessageWithStatusResponse;
-import com.example.aiinterview.module.interview.application.dto.SseResponse;
+import com.example.aiinterview.module.interview.application.dto.*;
+import com.example.aiinterview.module.interview.domain.entity.InterviewResultSummary;
 import com.example.aiinterview.module.interview.domain.entity.InterviewSession;
 import com.example.aiinterview.module.interview.domain.service.InterviewSessionAuthorizationService;
+import com.example.aiinterview.module.interview.domain.vo.InterviewDetailFeedbackOverview;
 import com.example.aiinterview.module.llm.interviewer.prompt.LLMPromptType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,7 @@ public class InterviewApplicationService {
     private final InterviewMessageService messageService;
     private final LLMInterviewStreamingService llmInterviewStreamingService;
     private final InterviewAnalysisService analysisService;
-
+    private final InterviewFeedbackService feedbackService;
     @Transactional
     public Mono<InterviewSession> createRoom(Long userId) {
         return sessionService.create(userId)
@@ -46,7 +47,26 @@ public class InterviewApplicationService {
         return validateOwnedSessionByUserId(sessionId, userId)
                 .flatMap(session -> messageService.retrieveMessageWithStatus(sessionId));
     }
+    public Mono<UserContentResponse> retrieveUserContent(Long sessionId, Long messageId, Long userId) {
+        return validateOwnedSessionByUserId(sessionId, userId)
+                .flatMap(session -> messageService.retrieveUserContent(messageId))
+                .map(UserContentResponse::of);
+    }
 
+    public Mono<LlmContentResponse> retrieveLlmContent(Long sessionId, Long messageId, Long userId) {
+        return validateOwnedSessionByUserId(sessionId, userId)
+                .flatMap(session -> messageService.retrieveLlmContent(messageId))
+                .map(LlmContentResponse::of);
+    }
+
+    public Mono<InterviewFeedbackResult> retrieveFeedbackResult(Long sessionId, Long messageId, Long userId){
+        return validateOwnedSessionByUserId(sessionId, userId)
+                .flatMap(session -> feedbackService.retrieveFeedbackResultByMessageId(messageId));
+    }
+    public Mono<InterviewResultSummary> retrieveFeedbackTotalResult(Long sessionId, Long memberId) {
+        return validateOwnedSessionByUserId(sessionId, memberId)
+                .flatMap(session -> feedbackService.retrieveFeedbackTotalResultByMessageId(sessionId));
+    }
     /**
      * 메시지 처리기
      * @param sessionId
@@ -63,6 +83,11 @@ public class InterviewApplicationService {
                 );
     }
 
+    public Mono<List<InterviewDetailFeedbackOverview>> retrieveFeedbackOverviews(Long sessionId, Long userId) {
+        return feedbackService.retrieveFeedbackOverviews(sessionId)
+                .collectList();
+    }
+
     public Mono<Void> completeAndAnalyze(Long sessionId) {
         return sessionService.complete(sessionId)
                 .then(messageService.retrieveMessage(sessionId))
@@ -74,7 +99,6 @@ public class InterviewApplicationService {
                 .flatMap(messages -> analysisService.analyze(sessionId, Flux.fromIterable(messages)));
     }
 
-
     public Mono<String> retrieveMessageBuffer(Long sessionId) {
         return llmInterviewStreamingService.retrieveMessageBuffer(sessionId);
     }
@@ -82,6 +106,7 @@ public class InterviewApplicationService {
 //        return Mono.fromRunnable(() -> rabbitTemplate.convertAndSend("task.queue",payload))
 //                .subscribeOn(Schedulers.boundedElastic()) // 블로킹 호출 방지
 //                .then();
+
 //    }
 
 
@@ -90,15 +115,16 @@ public class InterviewApplicationService {
                 .flatMap(session -> sessionAuthorizationService.validateAccess(session, userId)
                         .thenReturn(session));
     }
-
     private Mono<InterviewSession> validateOwnedSessionByUserId(Long sessionId, Long userId) {
         return sessionService.findById(sessionId)
                 .flatMap(session -> sessionAuthorizationService.assertUserIsOwner(session, userId)
                         .thenReturn(session));
     }
+
     private Flux<SseResponse> handleLLMStreamingOrSessionCompletion(Long sessionId, String message, long currentMessageCount) {
         if (currentMessageCount >= MAX_MESSAGE_COUNT) {
             return sessionService.complete(sessionId)
+                    .then(analyze(sessionId))
                     .thenReturn(SseResponse.terminated())
                     .flux();
         }
@@ -106,4 +132,5 @@ public class InterviewApplicationService {
                 .startInterviewStreaming(sessionId, LLMPromptType.BACKEND, message)
                 .map(SseResponse::progress);
     }
+
 }
