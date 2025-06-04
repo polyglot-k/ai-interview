@@ -3,9 +3,8 @@ package com.example.aiinterview.module.interview.presentation;
 import com.example.aiinterview.global.common.response.ResponseFactory;
 import com.example.aiinterview.global.common.response.dto.ApiResponse;
 import com.example.aiinterview.module.interview.application.InterviewApplicationService;
-import com.example.aiinterview.module.interview.application.dto.InterviewMessageWithStatusResponse;
-import com.example.aiinterview.module.interview.application.dto.SseResponse;
-import com.example.aiinterview.module.interview.application.dto.StreamRequest;
+import com.example.aiinterview.module.interview.application.dto.*;
+import com.example.aiinterview.module.interview.domain.entity.InterviewResultSummary;
 import com.example.aiinterview.module.interview.domain.entity.InterviewSession;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -51,12 +50,31 @@ public class InterviewController {
                 .then(ResponseFactory.successVoid());
     }
 
+
     @GetMapping("/{sessionId}/messages")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "인터뷰 세션의 모든 채팅 기록 조회(토큰 필요)", description = "토큰을 포함해야 하며, 인터뷰 세션(방) 내부의 메시지 정보를 조회합니다.")
     public Mono<ApiResponse<InterviewMessageWithStatusResponse>> retrieveMessage(@Parameter(description = "세션 고유 ID") @PathVariable Long sessionId,
                                                                                  @RequestAttribute("userId") Long memberId) {
         return applicationService.retrieveMessages(sessionId, memberId)
+                .flatMap(ResponseFactory::successMono);
+    }
+    @GetMapping("/{sessionId}/messages/{messageId}/user-content")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "인터뷰 세션의 특정 사용자 답변 메시지를 조회 (토큰 필요)", description = "토큰을 포함해야 하며, 인터뷰 세션(방) 내부의 메시지 정보를 조회합니다.")
+    public Mono<ApiResponse<UserContentResponse>> retrieveOnlyUserContent(@Parameter(description = "세션 고유 ID") @PathVariable Long sessionId,
+                                                                          @Parameter(description = "메시지 고유 ID") @PathVariable Long messageId,
+                                                                          @RequestAttribute("userId") Long memberId) {
+        return applicationService.retrieveUserContent(sessionId, messageId, memberId)
+                .flatMap(ResponseFactory::successMono);
+    }
+    @GetMapping("/{sessionId}/messages/{messageId}llm-content")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "인터뷰 세션의 특정 LLM 질뭊ㄴ 메시지를 조회(토큰 필요)", description = "토큰을 포함해야 하며, 인터뷰 세션(방) 내부의 메시지 정보를 조회합니다.")
+    public Mono<ApiResponse<LlmContentResponse>> retrieveOnlyLlmContent(@Parameter(description = "세션 고유 ID") @PathVariable Long sessionId,
+                                                                                        @Parameter(description = "메시지 고유 ID") @PathVariable Long messageId,
+                                                                                 @RequestAttribute("userId") Long memberId) {
+        return applicationService.retrieveLlmContent(sessionId, messageId, memberId)
                 .flatMap(ResponseFactory::successMono);
     }
 //    @Deprecated
@@ -77,7 +95,6 @@ public class InterviewController {
                                                       @RequestAttribute("userId") Long userId,
                                                       @Parameter(description = "stream에 필요한 요소") @RequestBody() StreamRequest request) {
         Flux<SseResponse> messageFlux = applicationService.saveUserMessageAndStreamingLLM(sessionId, userId, request.getMessage())
-                .delayElements( Duration.ofMillis(1000))
                 .share();
         Flux<SseResponse> heartbeatFlux = generateHeartbeatPing().takeUntilOther(messageFlux);
         return Flux.merge(messageFlux, heartbeatFlux)
@@ -93,6 +110,34 @@ public class InterviewController {
         return applicationService.retrieveMessageBuffer(sessionId)
                 .flatMap(ResponseFactory::successMono);
     }
+
+    @GetMapping("/{sessionId}/feedbacks/result")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "sessoin 내의 특정 message 에 대한 피드백 상세 결과 조회 ", description = "sessoin 내의 특정 message 에 대한 피드백 상세 결과 조회 ")
+    public Mono<ApiResponse<InterviewFeedbackResult>> retrieveFeedbackResult(@Parameter(description = "세션 고유 ID") @PathVariable Long sessionId,
+                                                                                    @Parameter(description = "메시지 고유 ID") @RequestParam("message_id") Long messageId,
+                                                                                    @RequestAttribute("userId") Long memberId){
+        return applicationService.retrieveFeedbackResult(sessionId,messageId, memberId)
+                .flatMap(ResponseFactory::successMono);
+    }
+
+    @GetMapping("/{sessionId}/feedbacks/total-result")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "sessoin 내의 특정 message 에 대한 총괄 피드백 결과 조회(평균 지표,토큰 필요)", description = "sessoin 내의 특정 message 에 대한 총괄 피드백 결과 조회(평균 지표,토큰 필요)")
+    public Mono<ApiResponse<InterviewResultSummary>> retrieveFeedbackResult(@Parameter(description = "세션 고유 ID") @PathVariable Long sessionId,
+                                                                            @RequestAttribute("userId") Long memberId){
+        return applicationService.retrieveFeedbackTotalResult(sessionId, memberId)
+                .flatMap(ResponseFactory::successMono);
+    }
+    @GetMapping("/{sessionId}/feedbacks/overviews")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "인터뷰 session 피드백이 있는 메시지 목록", description = "AI 스트리밍 진행 시 데이터를 유실해서, 받아오지 못할 때, buffer 의 데이터를 가지고 오면 됨")
+    public Mono<ApiResponse<?>> retrieveFeedbackOverviews(@Parameter(description = "세션 고유 ID") @PathVariable Long sessionId,
+                                                                                    @RequestAttribute("userId") Long memberId){
+        return applicationService.retrieveFeedbackOverviews(sessionId, memberId)
+                .flatMap(ResponseFactory::successMono);
+    }
+
 
 
     private Flux<SseResponse> generateHeartbeatPing(){
