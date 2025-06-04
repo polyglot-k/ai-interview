@@ -82,4 +82,14 @@ public class InterviewMessageService {
         return messageRepository.deleteById(sessionId);
     }
 
+    public Mono<InterviewMessage> retrieveLlmContent(Long messageId) {
+        return messageRepository.findLlmContent(messageId)
+                .switchIfEmpty(Mono.error(new RuntimeException("없다.")));
+    }
+
+    public Mono<InterviewMessage> retrieveUserContent(Long messageId) {
+        return messageRepository.findUserContent(messageId)
+                .switchIfEmpty(Mono.error(new RuntimeException("없다.")));
+
+    }
 }
