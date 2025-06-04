@@ -46,6 +46,7 @@ public class LLMConfiguration {
                         .items(JsonObjectSchema.builder()
                                 .addNumberProperty("messageId", "표기된 messageId 값을 그대로 포함해주세요. (제시된 모든 messageId에 대한 분석이 필요하므로 모두 포함해야 합니다.)")
                                 .addNumberProperty("score", "LLM 질문에 대한 USER 답변 점수를 100점 만점으로 평가해주세요. 부족한 부분이 있다면 낮은 점수를 부여해주세요.")
+                                .addStringProperty("coreQuestion","LLM 질문의 중점만 잡아서, 질문을 한줄로 요약해줘 (불필요한거 제거 messageId 당 1개임, 최대 45글자로 요약)")
                                 .addStringProperty("feedback", "해당 답변에 대한 상세 피드백을 신입 면접 상황을 고려하여 한국어로 작성해주세요. 긍정적인 답변이라면 칭찬해주세요.")
                                 .required("messageId", "score", "feedback")
                                 .build())
