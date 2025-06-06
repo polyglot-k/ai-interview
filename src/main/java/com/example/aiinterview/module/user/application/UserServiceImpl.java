@@ -1,5 +1,6 @@
 package com.example.aiinterview.module.user.application;
 
+import com.example.aiinterview.global.common.response.dto.ApiResponse;
 import com.example.aiinterview.global.common.utils.CryptUtils;
 import com.example.aiinterview.module.user.application.dto.CreateMemberRequest;
 import com.example.aiinterview.module.user.domain.entity.User;
@@ -28,6 +29,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public Mono<User> findAll() {
         return userRepository.findById(100L);
+    }
+
+    @Override
+    public Mono<Void> delete(Long userId) {
+        return userRepository.deleteById(userId)
+                .then();
     }
 
     private Mono<User> saveNewUser(CreateMemberRequest request) {
