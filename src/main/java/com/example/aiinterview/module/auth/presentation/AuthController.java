@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-@Tag(name="AUTH API", description = "인증 관련 기능을 제공하는 API 입니다.")
+@Tag(name="2. AUTH API", description = "인증 관련 기능을 제공하는 API 입니다.")
 @Slf4j
 public class AuthController {
     private final AuthService authService;
