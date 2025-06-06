@@ -1,5 +1,6 @@
 package com.example.aiinterview.module.interview.application;
 
+import com.example.aiinterview.global.common.utils.ReactiveCacheHelper;
 import com.example.aiinterview.module.interview.application.dto.InterviewMessageWithStatusResponse;
 import com.example.aiinterview.module.interview.domain.entity.InterviewMessage;
 import com.example.aiinterview.module.interview.domain.repository.InterviewMessageRepository;
@@ -21,6 +22,7 @@ import static com.example.aiinterview.module.interview.application.dto.Interview
 @RequiredArgsConstructor
 public class InterviewMessageService {
     private final InterviewMessageRepository messageRepository;
+    private final ReactiveCacheHelper cacheHelper;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public Mono<InterviewMessage> saveQuestionByLLM(Long sessionId, String message) {
@@ -78,18 +80,21 @@ public class InterviewMessageService {
         return messageRepository.countBySessionId(sessionId);
     }
 
-    public Mono<Void> deleteLastMessage(Long sessionId) {
-        return messageRepository.deleteById(sessionId);
-    }
 
     public Mono<InterviewMessage> retrieveLlmContent(Long messageId) {
-        return messageRepository.findLlmContent(messageId)
-                .switchIfEmpty(Mono.error(new RuntimeException("없다.")));
+        return cacheHelper.getOrSet("llm-content:"+messageId,
+                ()->messageRepository.findLlmContent(messageId)
+                        .switchIfEmpty(Mono.error(new RuntimeException("없다."))),
+                InterviewMessage.class)
+                .switchIfEmpty(Mono.error(new RuntimeException("없다")));
     }
 
     public Mono<InterviewMessage> retrieveUserContent(Long messageId) {
-        return messageRepository.findUserContent(messageId)
-                .switchIfEmpty(Mono.error(new RuntimeException("없다.")));
+        return cacheHelper.getOrSet("user-content:"+messageId,
+                ()->messageRepository.findUserContent(messageId)
+                        .switchIfEmpty(Mono.error(new RuntimeException("없다."))),
+                InterviewMessage.class)
+                .switchIfEmpty(Mono.error(new RuntimeException("없다")));
 
     }
 }
