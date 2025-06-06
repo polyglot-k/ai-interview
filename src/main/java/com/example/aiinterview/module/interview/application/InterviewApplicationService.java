@@ -84,8 +84,7 @@ public class InterviewApplicationService {
     }
 
     public Mono<List<InterviewDetailFeedbackOverview>> retrieveFeedbackOverviews(Long sessionId, Long userId) {
-        return feedbackService.retrieveFeedbackOverviews(sessionId)
-                .collectList();
+        return feedbackService.retrieveFeedbackOverviews(sessionId);
     }
 
     public Mono<Void> completeAndAnalyze(Long sessionId) {
@@ -111,12 +110,12 @@ public class InterviewApplicationService {
 
 
     private Mono<InterviewSession> validateAccessSession(Long sessionId, Long userId) {
-        return sessionService.findById(sessionId)
+        return sessionService.findByIdForcedCoveringIndex(sessionId)
                 .flatMap(session -> sessionAuthorizationService.validateAccess(session, userId)
                         .thenReturn(session));
     }
     private Mono<InterviewSession> validateOwnedSessionByUserId(Long sessionId, Long userId) {
-        return sessionService.findById(sessionId)
+        return sessionService.findByIdForcedCoveringIndex(sessionId)
                 .flatMap(session -> sessionAuthorizationService.assertUserIsOwner(session, userId)
                         .thenReturn(session));
     }
@@ -133,4 +132,12 @@ public class InterviewApplicationService {
                 .map(SseResponse::progress);
     }
 
+    /**
+     * TODO:권한에 대한거??
+     * @param sessionId
+     * @return
+     */
+    public Mono<Void> deleteSession(Long sessionId) {
+        return sessionService.delete(sessionId);
+    }
 }
