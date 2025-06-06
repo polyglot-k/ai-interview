@@ -10,21 +10,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface InterviewDetailFeedbackRepository  extends R2dbcRepository<InterviewDetailFeedback, Long> {
-    // 변경 필요함.
-    @Query("""
-        SELECT
-            f.id AS interview_feedback_id,
-            f.core_question,
-            f.m_id as interview_message_id,
-            f.score,
-            f.created_at AS created_at
-        FROM interview_message m
-        INNER JOIN interview_detail_feedback f ON f.m_id = m.id
-        WHERE m.i_id = :sessionId
-        LIMIT 20
-    """)
-    Flux<InterviewDetailFeedbackWithMessageId> findFeedbacksByInterviewId(@Param("sessionId") Long sessionId);
-
     @Query("""
         SELECT
             f.id AS feedback_id,
