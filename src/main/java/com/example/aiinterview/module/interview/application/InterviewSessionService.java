@@ -29,17 +29,21 @@ public class InterviewSessionService {
     }
 
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-    public Mono<InterviewSession> findById(Long sessionId) {
-        return sessionRepository.findById(sessionId)
+    public Mono<InterviewSession> findByIdForcedCoveringIndex(Long sessionId) {
+        return sessionRepository.findByIdForcedCoveringIndex(sessionId)
                 .switchIfEmpty(Mono.error(InterviewSessionNotFoundException::new));
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
     public Mono<Void> complete(Long sessionId) {
-        return findById(sessionId)
+        return sessionRepository.findById(sessionId)
                 .flatMap(session -> {
                     session.end();
                     return sessionRepository.save(session).then();
                 });
+    }
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Mono<Void> delete(Long sessionId) {
+        return sessionRepository.deleteById(sessionId).then();
     }
 }
