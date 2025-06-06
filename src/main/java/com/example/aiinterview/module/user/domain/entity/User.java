@@ -2,10 +2,7 @@ package com.example.aiinterview.module.user.domain.entity;
 
 import com.example.aiinterview.global.common.utils.CryptUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -16,6 +13,7 @@ import java.time.LocalDateTime;
 
 @Table("users")
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class User {
@@ -50,5 +48,16 @@ public class User {
 
     public static User create(String email, String name, String password) {
         return new User(email, name, password, LocalDateTime.now());
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", email='" + email + '\'' +
+                ", name='" + name + '\'' +
+                ", password='" + password + '\'' +
+                ", createdAt=" + createdAt +
+                '}';
     }
 }
