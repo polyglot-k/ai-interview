@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS interview_session (
     u_id bigint,
     foreign key (u_id) references users(id)
        on delete cascade
-       on update cascade
+       on update cascade,
+    index interview_session_covering_idx (id, u_id, status)
 );
 
 CREATE TABLE IF NOT EXISTS interview_result_summary (
@@ -85,7 +86,8 @@ CREATE TABLE IF NOT EXISTS interview_detail_feedback (
      m_id bigint,
      foreign key (m_id) references interview_message(id)
          on delete cascade
-         on update cascade
+         on update cascade,
+    index feedback_idx1 (m_id, created_at, core_question, score)
 );
 CREATE TABLE  IF NOT EXISTS chat_memory (
 
